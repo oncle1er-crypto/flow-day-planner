@@ -71,7 +71,7 @@ export function useToggleTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
-      const patch = { status: done ? "done" : "todo", completed_at: done ? new Date().toISOString() : null };
+      const patch: TaskUpdate = { status: done ? "done" : "todo", completed_at: done ? new Date().toISOString() : null };
       // Optimistic cache update so UI flips instantly even offline
       qc.setQueriesData<Task[]>({ queryKey: ["tasks"] }, (old) =>
         old?.map((t) => (t.id === id ? ({ ...t, ...patch } as Task) : t)) ?? old,
