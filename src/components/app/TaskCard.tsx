@@ -1,4 +1,4 @@
-import { Check, Clock, Repeat, Bell } from "lucide-react";
+import { Check, Clock, Repeat, Bell, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PriorityBadge } from "./PriorityBadge";
 import type { Task, Category } from "@/lib/task-utils";
@@ -7,6 +7,7 @@ import { smartDateLabel } from "@/lib/dates";
 import { useToggleTask } from "@/hooks/use-tasks";
 import { useState } from "react";
 import { TaskFormDialog } from "./TaskFormDialog";
+import { useSubtasks } from "@/hooks/use-subtasks";
 
 export function TaskCard({ task, categories }: { task: Task; categories?: Category[] }) {
   const toggle = useToggleTask();
@@ -14,6 +15,8 @@ export function TaskCard({ task, categories }: { task: Task; categories?: Catego
   const done = task.status === "done";
   const overdue = isOverdue(task);
   const cat = categories?.find((c) => c.id === task.category_id);
+  const { data: subs = [] } = useSubtasks(task.id);
+  const subDone = subs.filter((s) => s.is_done).length;
 
   return (
     <>
@@ -60,6 +63,12 @@ export function TaskCard({ task, categories }: { task: Task; categories?: Catego
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color }} />
                 {cat.name}
+              </span>
+            )}
+            {subs.length > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <ListChecks className="h-3.5 w-3.5" />
+                {subDone}/{subs.length}
               </span>
             )}
             <PriorityBadge priority={task.priority as Priority} />

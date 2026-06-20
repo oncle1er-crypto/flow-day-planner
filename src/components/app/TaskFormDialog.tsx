@@ -9,8 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { useCategories } from "@/hooks/use-categories";
 import { useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
 import type { Task, Priority, Status } from "@/lib/task-utils";
-import { Trash2 } from "lucide-react";
+import { Trash2, Archive, ArchiveRestore } from "lucide-react";
 import { todayISO } from "@/lib/dates";
+import { SubtasksEditor } from "./SubtasksEditor";
 
 export function TaskFormDialog({
   open,
@@ -157,21 +158,35 @@ export function TaskFormDialog({
             </div>
             <Switch checked={reminder} onCheckedChange={setReminder} />
           </div>
+          {editing && task && <SubtasksEditor taskId={task.id} />}
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
           {editing && task && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="mr-auto text-destructive hover:bg-destructive/10"
-              onClick={async () => {
-                await del.mutateAsync(task.id);
-                onOpenChange(false);
-              }}
-              aria-label="Supprimer"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="mr-auto flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  await update.mutateAsync({ id: task.id, patch: { is_archived: !task.is_archived } });
+                  onOpenChange(false);
+                }}
+                aria-label={task.is_archived ? "Désarchiver" : "Archiver"}
+              >
+                {task.is_archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:bg-destructive/10"
+                onClick={async () => {
+                  await del.mutateAsync(task.id);
+                  onOpenChange(false);
+                }}
+                aria-label="Supprimer"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
           <Button onClick={handleSave} disabled={!title.trim() || create.isPending || update.isPending}>
