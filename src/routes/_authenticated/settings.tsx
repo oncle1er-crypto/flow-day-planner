@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { Bell, BellOff, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
@@ -51,7 +52,7 @@ function SettingsPage() {
     }
   };
 
-  const updateSetting = async (patch: Record<string, unknown>) => {
+  const updateSetting = async (patch: TablesUpdate<"user_settings">) => {
     if (!profile) return;
     await supabase.from("user_settings").update(patch).eq("user_id", profile.id);
     qc.invalidateQueries({ queryKey: ["settings"] });
