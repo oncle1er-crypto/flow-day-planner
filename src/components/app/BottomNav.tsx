@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Home, ListChecks, Sparkles, Flame, Target } from "lucide-react";
+import { Home, ListChecks, Sparkles, Flame, Target, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/dashboard", label: "Accueil", icon: Home },
   { to: "/today", label: "Aujourd'hui", icon: ListChecks },
+  { to: "/focus", label: "Focus", icon: Timer },
   { to: "/habits", label: "Habitudes", icon: Flame },
   { to: "/goals", label: "Objectifs", icon: Target },
   { to: "/assistant", label: "Assistant", icon: Sparkles },
@@ -16,7 +17,7 @@ export function BottomNav() {
       className="fixed bottom-0 inset-x-0 z-40 glass border-t border-border/40"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="max-w-2xl mx-auto grid grid-cols-5 px-2 py-2">
+      <ul className="max-w-2xl mx-auto grid grid-cols-6 px-2 py-2">
         {items.map(({ to, label, icon: Icon }) => (
           <li key={to}>
             <Link
