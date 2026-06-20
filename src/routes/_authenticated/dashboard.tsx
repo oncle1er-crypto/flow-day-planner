@@ -8,7 +8,8 @@ import { isOverdue } from "@/lib/task-utils";
 import { Progress } from "@/components/ui/progress";
 import { TaskCard } from "@/components/app/TaskCard";
 import { useCategories } from "@/hooks/use-categories";
-import { ListChecks, AlertTriangle, CheckCircle2, Flame, CalendarDays, Sparkles, ArrowRight } from "lucide-react";
+import { ListChecks, AlertTriangle, CheckCircle2, Flame, CalendarDays, Sparkles, ArrowRight, Trophy } from "lucide-react";
+import { useGamification } from "@/hooks/use-gamification";
 import { useState } from "react";
 import { TaskFormDialog } from "@/components/app/TaskFormDialog";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ function Dashboard() {
   const { data: allTasks = [] } = useTasks();
   const { data: categories = [] } = useCategories();
   const [openNew, setOpenNew] = useState(false);
+  const { xp, level } = useGamification();
 
   const done = todayTasks.filter((t) => t.status === "done").length;
   const total = todayTasks.length;
@@ -73,6 +75,29 @@ function Dashboard() {
           <Link to="/calendar" className="contents"><QuickAction icon={CalendarDays} label="Agenda" /></Link>
           <Link to="/assistant" className="contents"><QuickAction icon={Sparkles} label="Planifier" /></Link>
         </section>
+
+        {/* Level card */}
+        <Link
+          to="/achievements"
+          className="block rounded-2xl border border-border bg-card/60 p-4 shadow-card hover:bg-card transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-xl bg-gradient-primary shadow-glow grid place-items-center text-primary-foreground">
+              <Trophy className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="font-display font-semibold">Niveau {level.level}</p>
+                <p className="text-xs text-muted-foreground">{xp} XP</p>
+              </div>
+              <div className="mt-2">
+                <Progress value={level.progressPct} className="h-1.5" />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">{level.xpInLevel}/{level.xpForNext} XP → niveau {level.level + 1}</p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </Link>
 
         {/* Upcoming */}
         <section>
