@@ -4,7 +4,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Settings, LogOut, ListChecks, Bell, User, ChevronRight } from "lucide-react";
+import { Settings, LogOut, ListChecks, Bell, User, ChevronRight, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: ProfilePage });
@@ -45,6 +45,7 @@ function ProfilePage() {
         </div>
 
         <nav className="space-y-2">
+          <Row to="/achievements" icon={Trophy} label="Récompenses & badges" />
           <Row to="/tasks" icon={ListChecks} label="Toutes les tâches" />
           <Row to="/notifications" icon={Bell} label="Notifications" />
           <Row to="/settings" icon={Settings} label="Paramètres" />
@@ -59,7 +60,7 @@ function ProfilePage() {
   );
 }
 
-function Row({ to, icon: Icon, label }: { to: "/tasks" | "/notifications" | "/settings"; icon: typeof Settings; label: string }) {
+function Row({ to, icon: Icon, label }: { to: "/tasks" | "/notifications" | "/settings" | "/achievements"; icon: typeof Settings; label: string }) {
   return (
     <Link to={to} className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 hover:bg-card transition">
       <div className="h-9 w-9 rounded-xl bg-primary/10 grid place-items-center">
