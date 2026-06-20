@@ -50,7 +50,8 @@ function SettingsPage() {
 
   const toggleSetting = async (key: "notifications_enabled" | "sound_enabled", value: boolean) => {
     if (!profile) return;
-    await supabase.from("user_settings").update({ [key]: value }).eq("user_id", profile.id);
+    const patch = key === "notifications_enabled" ? { notifications_enabled: value } : { sound_enabled: value };
+    await supabase.from("user_settings").update(patch).eq("user_id", profile.id);
     qc.invalidateQueries({ queryKey: ["settings"] });
   };
 
