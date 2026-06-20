@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { Bell, BellOff, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -18,6 +20,7 @@ function SettingsPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const { permission, isSupported, isGranted, requestPermission } = usePushNotifications();
 
   useEffect(() => {
     if (profile) {
@@ -48,9 +51,8 @@ function SettingsPage() {
     }
   };
 
-  const toggleSetting = async (key: "notifications_enabled" | "sound_enabled", value: boolean) => {
+  const updateSetting = async (patch: Record<string, unknown>) => {
     if (!profile) return;
-    const patch = key === "notifications_enabled" ? { notifications_enabled: value } : { sound_enabled: value };
     await supabase.from("user_settings").update(patch).eq("user_id", profile.id);
     qc.invalidateQueries({ queryKey: ["settings"] });
   };
@@ -77,18 +79,70 @@ function SettingsPage() {
 
         <section className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
           <h2 className="font-display font-semibold">Notifications</h2>
+
+          {/* Browser permission */}
+          {!isSupported ? (
+            <div className="rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground flex items-center gap-2">
+              <BellOff className="h-4 w-4" /> Notifications non supportées sur cet appareil.
+            </div>
+          ) : isGranted ? (
+            <div className="rounded-xl bg-success/10 text-success p-3 text-xs flex items-center gap-2">
+              <Check className="h-4 w-4" /> Notifications autorisées par le navigateur
+            </div>
+          ) : permission === "denied" ? (
+            <div className="rounded-xl bg-destructive/10 text-destructive p-3 text-xs">
+              Notifications bloquées. Autorisez-les dans les paramètres de votre navigateur.
+            </div>
+          ) : (
+            <Button variant="outline" className="w-full" onClick={requestPermission}>
+              <Bell className="h-4 w-4 mr-2" /> Activer les notifications du navigateur
+            </Button>
+          )}
+
           <SettingRow
             label="Activer les notifications"
             description="Recevoir les rappels dans l'app"
             checked={!!settings?.notifications_enabled}
-            onChange={(v) => toggleSetting("notifications_enabled", v)}
+            onChange={(v) => updateSetting({ notifications_enabled: v })}
           />
           <SettingRow
             label="Son d'alerte"
             description="Jouer un son lors d'un rappel"
             checked={!!settings?.sound_enabled}
-            onChange={(v) => toggleSetting("sound_enabled", v)}
+            onChange={(v) => updateSetting({ sound_enabled: v })}
           />
+          <SettingRow
+            label="Rappel quotidien"
+            description="Une notification chaque matin avec votre plan du jour"
+            checked={!!settings?.daily_reminder_enabled}
+            onChange={(v) => updateSetting({ daily_reminder_enabled: v })}
+          />
+          {settings?.daily_reminder_enabled && (
+            <div className="flex items-center justify-between gap-4 pl-1">
+              <Label htmlFor="daily-time" className="text-sm">Heure du rappel</Label>
+              <Input
+                id="daily-time"
+                type="time"
+                value={String(settings.daily_reminder_time ?? "09:00").slice(0, 5)}
+                onChange={(e) => updateSetting({ daily_reminder_time: e.target.value + ":00" })}
+                className="w-32"
+              />
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="font-medium text-sm">Rappel avant échéance</p>
+              <p className="text-xs text-muted-foreground">Minutes avant l'heure d'une tâche</p>
+            </div>
+            <Input
+              type="number"
+              min={0}
+              max={1440}
+              value={settings?.default_reminder_minutes ?? 15}
+              onChange={(e) => updateSetting({ default_reminder_minutes: Number(e.target.value) || 0 })}
+              className="w-24"
+            />
+          </div>
         </section>
 
         <section className="rounded-2xl border border-border bg-card/60 p-5">
