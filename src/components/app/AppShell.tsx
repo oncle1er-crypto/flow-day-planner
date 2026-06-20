@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { AppHeader } from "./AppHeader";
 import { useGamification } from "@/hooks/use-gamification";
+import { useScheduledReminders } from "@/hooks/use-push-notifications";
 
 export function AppShell({
   children,
@@ -18,6 +19,8 @@ export function AppShell({
 }) {
   // Background hook: detects newly unlocked achievements on any authenticated page
   useGamification();
+  // Schedules local notifications for tasks & daily reminder
+  useScheduledReminders();
   return (
     <div className="min-h-screen flex flex-col pb-24">
       {!hideHeader && <AppHeader title={title} subtitle={subtitle} action={action} />}
