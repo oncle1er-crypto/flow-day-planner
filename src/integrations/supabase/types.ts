@@ -47,6 +47,95 @@ export type Database = {
         }
         Relationships: []
       }
+      habit_logs: {
+        Row: {
+          count: number
+          created_at: string
+          habit_id: string
+          id: string
+          log_date: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          habit_id: string
+          id?: string
+          log_date: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          habit_id?: string
+          id?: string
+          log_date?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          color: string | null
+          created_at: string
+          days_of_week: number[]
+          description: string | null
+          frequency: string
+          icon: string | null
+          id: string
+          is_archived: boolean
+          name: string
+          position: number
+          reminder_time: string | null
+          target_per_day: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          days_of_week?: number[]
+          description?: string | null
+          frequency?: string
+          icon?: string | null
+          id?: string
+          is_archived?: boolean
+          name: string
+          position?: number
+          reminder_time?: string | null
+          target_per_day?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          days_of_week?: number[]
+          description?: string | null
+          frequency?: string
+          icon?: string | null
+          id?: string
+          is_archived?: boolean
+          name?: string
+          position?: number
+          reminder_time?: string | null
+          target_per_day?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
