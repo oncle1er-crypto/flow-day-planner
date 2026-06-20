@@ -9,8 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { useCategories } from "@/hooks/use-categories";
 import { useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
 import type { Task, Priority, Status } from "@/lib/task-utils";
-import { Trash2 } from "lucide-react";
+import { Trash2, Archive, ArchiveRestore } from "lucide-react";
 import { todayISO } from "@/lib/dates";
+import { SubtasksEditor } from "./SubtasksEditor";
 
 export function TaskFormDialog({
   open,
