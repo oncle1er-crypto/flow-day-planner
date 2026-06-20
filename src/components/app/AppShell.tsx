@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { AppHeader } from "./AppHeader";
+import { useGamification } from "@/hooks/use-gamification";
 
 export function AppShell({
   children,
@@ -15,6 +16,8 @@ export function AppShell({
   action?: ReactNode;
   hideHeader?: boolean;
 }) {
+  // Background hook: detects newly unlocked achievements on any authenticated page
+  useGamification();
   return (
     <div className="min-h-screen flex flex-col pb-24">
       {!hideHeader && <AppHeader title={title} subtitle={subtitle} action={action} />}
