@@ -3,6 +3,7 @@ import { BottomNav } from "./BottomNav";
 import { AppHeader } from "./AppHeader";
 import { useGamification } from "@/hooks/use-gamification";
 import { useScheduledReminders } from "@/hooks/use-push-notifications";
+import { useOfflineSync } from "@/hooks/use-online-status";
 
 export function AppShell({
   children,
@@ -21,6 +22,8 @@ export function AppShell({
   useGamification();
   // Schedules local notifications for tasks & daily reminder
   useScheduledReminders();
+  // Offline queue: auto-flush when connection returns
+  useOfflineSync();
   return (
     <div className="min-h-screen flex flex-col pb-24">
       {!hideHeader && <AppHeader title={title} subtitle={subtitle} action={action} />}
