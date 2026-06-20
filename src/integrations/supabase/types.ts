@@ -47,6 +47,59 @@ export type Database = {
         }
         Relationships: []
       }
+      focus_sessions: {
+        Row: {
+          actual_seconds: number
+          completed: boolean
+          created_at: string
+          ended_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["focus_kind"]
+          note: string | null
+          planned_minutes: number
+          started_at: string
+          task_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_seconds?: number
+          completed?: boolean
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["focus_kind"]
+          note?: string | null
+          planned_minutes?: number
+          started_at?: string
+          task_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_seconds?: number
+          completed?: boolean
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["focus_kind"]
+          note?: string | null
+          planned_minutes?: number
+          started_at?: string
+          task_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "focus_sessions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           category_id: string | null
@@ -446,6 +499,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      focus_kind: "focus" | "short_break" | "long_break"
       goal_status: "active" | "done" | "paused"
       goal_type: "short" | "long"
       recurrence_type:
@@ -585,6 +639,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      focus_kind: ["focus", "short_break", "long_break"],
       goal_status: ["active", "done", "paused"],
       goal_type: ["short", "long"],
       recurrence_type: [
