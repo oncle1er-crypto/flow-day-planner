@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Habit, HabitInsert, HabitLog } from "@/lib/habit-utils";
 import { toast } from "sonner";
+import { enqueueOp, isOnline } from "@/lib/sync-queue";
 
 export function useHabits() {
   return useQuery<Habit[]>({
@@ -85,6 +86,14 @@ export function useToggleHabitDay() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Non authentifié");
       if (done) {
+        if (!isOnline()) {
+          await enqueueOp({
+            table: "habit_logs",
+            action: "insert",
+            payload: { habit_id: habitId, user_id: u.user.id, log_date: date, count: 1 },
+          });
+          return;
+        }
         const { error } = await supabase
           .from("habit_logs")
           .upsert(
@@ -93,6 +102,14 @@ export function useToggleHabitDay() {
           );
         if (error) throw error;
       } else {
+        if (!isOnline()) {
+          await enqueueOp({
+            table: "habit_logs",
+            action: "delete",
+            match: { habit_id: habitId, log_date: date },
+          });
+          return;
+        }
         const { error } = await supabase
           .from("habit_logs")
           .delete()
