@@ -29,15 +29,6 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/today" });
-    });
-  }, [navigate]);
-
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -93,15 +84,13 @@ function AuthPage() {
       } else if (error) {
         throw error;
       }
-      navigate({ to: "/today" });
+      await navigate({ to: "/today" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur");
-    } finally {
       setLoading(false);
     }
   };
 
-  if (!mounted) return null;
   return (
     <div className="min-h-screen grid place-items-center p-4">
       <div className="w-full max-w-md">
