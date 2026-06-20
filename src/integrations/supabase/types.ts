@@ -476,6 +476,8 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
+          daily_reminder_enabled: boolean
+          daily_reminder_time: string
           default_reminder_minutes: number
           language: string
           notifications_enabled: boolean
@@ -487,6 +489,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          daily_reminder_enabled?: boolean
+          daily_reminder_time?: string
           default_reminder_minutes?: number
           language?: string
           notifications_enabled?: boolean
@@ -498,6 +502,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          daily_reminder_enabled?: boolean
+          daily_reminder_time?: string
           default_reminder_minutes?: number
           language?: string
           notifications_enabled?: boolean
