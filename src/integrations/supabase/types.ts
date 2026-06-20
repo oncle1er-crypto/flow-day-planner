@@ -47,6 +47,65 @@ export type Database = {
         }
         Relationships: []
       }
+      goals: {
+        Row: {
+          category_id: string | null
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_archived: boolean
+          position: number
+          progress: number
+          status: Database["public"]["Enums"]["goal_status"]
+          target_date: string | null
+          title: string
+          type: Database["public"]["Enums"]["goal_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          position?: number
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          target_date?: string | null
+          title: string
+          type?: Database["public"]["Enums"]["goal_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          position?: number
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          target_date?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["goal_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_logs: {
         Row: {
           count: number
@@ -387,6 +446,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      goal_status: "active" | "done" | "paused"
+      goal_type: "short" | "long"
       recurrence_type:
         | "none"
         | "daily"
@@ -524,6 +585,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      goal_status: ["active", "done", "paused"],
+      goal_type: ["short", "long"],
       recurrence_type: [
         "none",
         "daily",
