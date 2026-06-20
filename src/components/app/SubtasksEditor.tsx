@@ -25,7 +25,7 @@ export function SubtasksEditor({ taskId }: { taskId: string }) {
         <p className="text-sm font-medium">Sous-tâches</p>
         {items.length > 0 && (
           <span className="text-xs text-muted-foreground">
-            {items.filter((s) => s.is_completed).length}/{items.length}
+            {items.filter((s) => s.is_done).length}/{items.length}
           </span>
         )}
       </div>
@@ -34,15 +34,15 @@ export function SubtasksEditor({ taskId }: { taskId: string }) {
           <div key={s.id} className="flex items-center gap-2 rounded-lg bg-secondary/40 px-2 py-1.5">
             <button
               type="button"
-              onClick={() => toggle.mutate({ id: s.id, taskId, completed: !s.is_completed })}
+              onClick={() => toggle.mutate({ id: s.id, taskId, completed: !s.is_done })}
               className={cn(
                 "h-5 w-5 shrink-0 rounded-md border-2 grid place-items-center transition",
-                s.is_completed ? "bg-success border-success text-success-foreground" : "border-border",
+                s.is_done ? "bg-success border-success text-success-foreground" : "border-border",
               )}
             >
-              {s.is_completed && <Check className="h-3 w-3" strokeWidth={3} />}
+              {s.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
             </button>
-            <span className={cn("flex-1 text-sm truncate", s.is_completed && "line-through text-muted-foreground")}>
+            <span className={cn("flex-1 text-sm truncate", s.is_done && "line-through text-muted-foreground")}>
               {s.title}
             </span>
             <button

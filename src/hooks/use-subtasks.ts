@@ -66,7 +66,7 @@ export function useToggleSubtask() {
     mutationFn: async ({ id, completed }: { id: string; taskId: string; completed: boolean }) => {
       const { error } = await supabase
         .from("subtasks")
-        .update({ is_completed: completed, completed_at: completed ? new Date().toISOString() : null })
+        .update({ is_done: completed, completed_at: completed ? new Date().toISOString() : null })
         .eq("id", id);
       if (error) throw error;
     },
