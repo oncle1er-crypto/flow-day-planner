@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Task, TaskInsert, TaskUpdate } from "@/lib/task-utils";
+import type { Task, TaskInsert, TaskUpdate, Status } from "@/lib/task-utils";
 import { toast } from "sonner";
 
-export function useTasks(filter?: { dueOn?: string; range?: [string, string]; status?: string[]; overdue?: boolean }) {
+export function useTasks(filter?: { dueOn?: string; range?: [string, string]; status?: Status[]; overdue?: boolean }) {
   return useQuery<Task[]>({
     queryKey: ["tasks", filter],
     queryFn: async () => {
