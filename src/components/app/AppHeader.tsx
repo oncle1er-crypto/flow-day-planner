@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
+import { Bell, User } from "lucide-react";
 import { useUnreadCount } from "@/hooks/use-notifications";
 
 export function AppHeader({ title, subtitle, action }: { title?: string; subtitle?: string; action?: ReactNode }) {
@@ -23,6 +23,13 @@ export function AppHeader({ title, subtitle, action }: { title?: string; subtitl
             {unread > 0 && (
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
             )}
+          </Link>
+          <Link
+            to="/profile"
+            aria-label="Profil"
+            className="h-10 w-10 rounded-full grid place-items-center bg-secondary/60 hover:bg-secondary transition"
+          >
+            <User className="h-5 w-5" />
           </Link>
         </div>
       </div>
