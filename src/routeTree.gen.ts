@@ -25,7 +25,6 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
-import { Route as ApiPublicHooksPushRemindersRouteImport } from './routes/api/public/hooks/push-reminders'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -108,12 +107,6 @@ const AuthenticatedAchievementsRoute =
     path: '/achievements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicHooksPushRemindersRoute =
-  ApiPublicHooksPushRemindersRouteImport.update({
-    id: '/api/public/hooks/push-reminders',
-    path: '/api/public/hooks/push-reminders',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -131,7 +124,6 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
-  '/api/public/hooks/push-reminders': typeof ApiPublicHooksPushRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -149,7 +141,6 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
-  '/api/public/hooks/push-reminders': typeof ApiPublicHooksPushRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -169,7 +160,6 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
-  '/api/public/hooks/push-reminders': typeof ApiPublicHooksPushRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -189,7 +179,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/today'
-    | '/api/public/hooks/push-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -207,7 +196,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/today'
-    | '/api/public/hooks/push-reminders'
   id:
     | '__root__'
     | '/'
@@ -226,7 +214,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
-    | '/api/public/hooks/push-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -234,7 +221,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ApiPublicHooksPushRemindersRoute: typeof ApiPublicHooksPushRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -351,13 +337,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/hooks/push-reminders': {
-      id: '/api/public/hooks/push-reminders'
-      path: '/api/public/hooks/push-reminders'
-      fullPath: '/api/public/hooks/push-reminders'
-      preLoaderRoute: typeof ApiPublicHooksPushRemindersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -399,7 +378,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ApiPublicHooksPushRemindersRoute: ApiPublicHooksPushRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
