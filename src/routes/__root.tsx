@@ -20,6 +20,7 @@ import "@fontsource/space-grotesk/600.css";
 import "@fontsource/space-grotesk/700.css";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { registerAppSw } from "@/lib/register-sw";
 
 function NotFoundComponent() {
   return (
@@ -140,6 +141,10 @@ function RootComponent() {
     });
     return () => sub.subscription.unsubscribe();
   }, [queryClient, router]);
+
+  useEffect(() => {
+    void registerAppSw();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
