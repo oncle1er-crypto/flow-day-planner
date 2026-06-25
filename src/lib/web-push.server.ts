@@ -55,9 +55,9 @@ async function signVapidJwt(audience: string, subject: string, pubKey: string, p
 }
 
 async function hkdf(salt: Uint8Array, ikm: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
-  const key = await crypto.subtle.importKey("raw", ikm, { name: "HKDF" }, false, ["deriveBits"]);
+  const key = await crypto.subtle.importKey("raw", ikm as BufferSource, { name: "HKDF" }, false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
-    { name: "HKDF", hash: "SHA-256", salt, info },
+    { name: "HKDF", hash: "SHA-256", salt: salt as BufferSource, info: info as BufferSource },
     key,
     length * 8,
   );
@@ -129,9 +129,9 @@ async function encryptPayload(
   // plaintext = payload || 0x02 (padding delimiter, no extra padding)
   const plaintext = concat(payload, new Uint8Array([0x02]));
 
-  const aesKey = await crypto.subtle.importKey("raw", cek, { name: "AES-GCM" }, false, ["encrypt"]);
+  const aesKey = await crypto.subtle.importKey("raw", cek as BufferSource, { name: "AES-GCM" }, false, ["encrypt"]);
   const ct = new Uint8Array(
-    await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, plaintext),
+    await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce as BufferSource }, aesKey, plaintext as BufferSource),
   );
 
   // Header: salt (16) || rs (4, big-endian = 4096) || idlen (1) || keyid (idlen bytes)
@@ -181,7 +181,7 @@ export async function sendWebPush(
       Urgency: opts.urgency ?? "normal",
       Authorization: `vapid t=${jwt}, k=${VAPID_PUBLIC_KEY}`,
     },
-    body,
+    body: body as BodyInit,
   });
   const expired = res.status === 404 || res.status === 410;
   return { status: res.status, ok: res.ok, expired };
