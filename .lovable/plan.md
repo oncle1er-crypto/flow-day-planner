@@ -1,64 +1,53 @@
-# Notifications de rappel en arrière-plan
+# Plan — Hors-ligne complet (app shell PWA)
 
-Aujourd'hui l'app n'envoie des rappels que lorsqu'elle est ouverte (via `setTimeout` + `Notification` dans `useScheduledReminders`). Dès que l'onglet est fermé, plus rien ne part. Pour recevoir des notifications même app fermée, il faut une vraie architecture **Web Push** : un Service Worker enregistré côté navigateur + un serveur qui pousse les notifications via VAPID au moment voulu.
+Objectif : permettre l'ouverture et l'usage de Smart Daily Tasks **sans aucune connexion Internet** après la première visite, en complément du cache de données et de la file de sync déjà en place.
 
-## Ce qui sera mis en place
+## Ce qui change
 
-### 1. Service Worker dédié aux notifications (`public/sw-push.js`)
-- Écoute l'événement `push` et affiche la notification (titre, corps, icône, URL).
-- Gère le clic sur la notification → ouvre la tâche / la page "Aujourd'hui".
-- Pas de cache d'app shell (on ne touche pas au comportement PWA actuel — conforme aux règles Lovable).
+### 1. Ajouter `vite-plugin-pwa` (mode `generateSW`)
+- Installation : `bun add -D vite-plugin-pwa workbox-window`
+- Configuration dans `vite.config.ts` :
+  - `registerType: "autoUpdate"`
+  - `devOptions: { enabled: false }` (jamais en dev/preview Lovable)
+  - `injectRegister: null` (registration manuelle, contrôlée)
+  - `filename: "sw.js"` (à la racine, scope `/`)
+  - Manifest réutilisé depuis le `manifest.webmanifest` existant
+  - Workbox runtime caching :
+    - **Navigations HTML** → `NetworkFirst` (jamais cache-first)
+    - **Assets buildés same-origin (JS/CSS/woff2/images hashés)** → `CacheFirst`
+    - **API Lovable Cloud / Supabase** → `NetworkFirst` court (fallback cache pour lecture seule)
+    - Exclure `/~oauth`, `/api/`, `sw-push.js` du fallback de navigation
+- Le service worker push existant (`public/sw-push.js`) reste **inchangé** — c'est un worker séparé pour les notifications, distinct de l'app shell.
 
-### 2. Stockage des abonnements push
-Nouvelle table `push_subscriptions` :
-- `user_id`, `endpoint` (unique), `p256dh`, `auth`, `user_agent`, timestamps.
-- RLS : l'utilisateur gère uniquement ses propres abonnements ; `service_role` pour le serveur d'envoi.
+### 2. Wrapper de registration sécurisé
+Nouveau fichier `src/lib/register-sw.ts` qui :
+- Refuse l'enregistrement si : pas en production, dans une iframe, hostname `id-preview--*` / `preview--*` / `*.lovableproject.com` / `*.lovableproject-dev.com` / `*.beta.lovable.dev`, ou URL contient `?sw=off`.
+- Dans ces cas : désenregistre proactivement tout `/sw.js` déjà installé (kill-switch).
+- Appelé une seule fois depuis `src/router.tsx` (ou point d'entrée client équivalent).
 
-### 3. Clés VAPID
-- Génération d'une paire VAPID (clé publique + privée).
-- `VITE_VAPID_PUBLIC_KEY` exposée au client, `VAPID_PRIVATE_KEY` + `VAPID_SUBJECT` en secrets serveur.
-- Je demanderai ces secrets via l'outil dédié au moment de l'implémentation.
+### 3. Indicateur "prêt hors-ligne"
+- Mini toast/badge "App prête hors-ligne ✓" la première fois que le SW termine son install (via `workbox-window`).
+- Toast "Nouvelle version disponible — recharger" quand un SW met à jour (autoUpdate recharge tout seul, on informe juste l'utilisateur).
 
-### 4. Abonnement côté client
-Dans `Paramètres > Notifications` :
-- Nouveau bouton "Activer les rappels en arrière-plan".
-- Demande la permission, enregistre le SW, crée la `PushSubscription`, l'enregistre dans Supabase via un `createServerFn`.
-- Bouton pour se désabonner (suppression locale + DB).
-- Affichage clair de l'état (actif / inactif / non supporté — iOS nécessite l'installation PWA).
+### 4. Documentation utilisateur (pas de code)
+Dans le menu Paramètres, petite note explicative :
+> Hors-ligne : créer, modifier, cocher des tâches/habitudes fonctionne sans réseau. La connexion, l'IA et les notifications push nécessitent Internet.
 
-### 5. Planificateur serveur (cron toutes les minutes)
-Server route `src/routes/api/public/hooks/push-reminders.ts` :
-- Récupère les tâches dont `due_date + due_time - default_reminder_minutes` tombe dans la minute en cours, `reminder_enabled = true`, non terminées.
-- Récupère les rappels quotidiens dus à cette minute (en respectant `daily_reminder_time` + timezone — voir point 6).
-- Pour chaque utilisateur concerné, envoie une notification Web Push à chacun de ses `push_subscriptions` via la lib `web-push`.
-- Supprime automatiquement les abonnements retournant 404/410 (expirés).
-- Sécurisé par `apikey` (clé anon) comme tout endpoint `/api/public/*`.
+## Ce qui ne change pas
+- `sw-push.js` (notifications push en arrière-plan) — laissé tel quel.
+- IndexedDB + file de sync (`offline-db.ts`, `sync-queue.ts`) déjà en place.
+- Persistance React Query déjà en place.
+- Aucune modification de schéma / backend.
 
-Job `pg_cron` : `* * * * *` (toutes les minutes) → POST sur cet endpoint.
+## Limites assumées
+- **Auth, IA, push serveur** restent online — pas contournable.
+- **Première visite** sur un appareil exige toujours Internet (le SW doit d'abord se télécharger).
+- **Preview Lovable** : le SW ne s'enregistre **pas** (par design, évite caches périmés). Test hors-ligne uniquement sur l'URL publiée `tache-daily.lovable.app`.
+- iOS : ajout à l'écran d'accueil obligatoire pour un comportement standalone fiable.
 
-### 6. Timezone utilisateur
-Ajout d'une colonne `timezone` (IANA, ex. `Europe/Paris`) sur `user_settings`, détectée et stockée au premier chargement via `Intl.DateTimeFormat().resolvedOptions().timeZone`. Indispensable pour que "rappel quotidien à 09:00" soit déclenché à la bonne minute côté serveur.
-
-### 7. Nettoyage du planificateur in-app
-- `useScheduledReminders` ne sera plus la source principale, mais conservé en fallback pour les rappels qui tomberaient pendant que l'app est ouverte (évite le doublon en marquant la notification déjà envoyée serveur).
-- Anti-doublon simple : nouvelle table `reminder_dispatch_log (task_id, kind, dispatched_at)` avec `UNIQUE(task_id, kind, scheduled_for)` pour que le cron ne renvoie jamais deux fois le même rappel.
-
-## Détails techniques (section pour devs)
-
-- Lib utilisée côté serveur : `web-push` (compatible Workers via fetch + JWT VAPID — on utilisera l'implémentation manuelle fetch si la lib n'est pas Worker-safe, sinon fallback `@block65/webcrypto-web-push`).
-- iOS Safari : Web Push fonctionne uniquement si l'app est installée à l'écran d'accueil (PWA). Le manifeste existant suffit, on ajoutera une note dans l'UI.
-- Aucune modification du SW d'app-shell (il n'y en a pas aujourd'hui) — `sw-push.js` est isolé.
-- Aucune correction de bugs hors scope ; on touche uniquement aux fichiers liés aux notifications + une migration DB.
-
-## Fichiers impactés
-- `public/sw-push.js` (nouveau)
-- `src/hooks/use-push-notifications.ts` (ajout abonnement/désabonnement Push)
-- `src/routes/_authenticated/settings.tsx` (UI activation arrière-plan)
-- `src/lib/push.functions.ts` (nouveau : save/delete subscription)
-- `src/routes/api/public/hooks/push-reminders.ts` (nouveau : cron handler)
-- Migration Supabase : `push_subscriptions`, `reminder_dispatch_log`, colonne `user_settings.timezone`
-- Cron `pg_cron` configuré via `supabase--insert`
-- Secrets : `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `VITE_VAPID_PUBLIC_KEY`
-
-## Question avant implémentation
-Une seule décision UX à confirmer : veux-tu que **l'activation des rappels en arrière-plan soit automatique** dès qu'on autorise les notifications, ou bien gardée derrière un **bouton séparé** "Activer les rappels même app fermée" dans Paramètres ? (par défaut je pars sur bouton séparé, plus transparent pour l'utilisateur).
+## Validation
+Après build :
+1. Ouvrir l'URL publiée → vérifier SW enregistré (DevTools → Application).
+2. Activer "Offline" dans DevTools, recharger → l'app doit s'ouvrir et naviguer.
+3. Créer une tâche hors-ligne → vérifier qu'elle apparaît, puis se synchronise au retour réseau.
+4. Vérifier que `sw-push.js` est toujours actif en parallèle.
