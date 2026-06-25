@@ -1,53 +1,71 @@
-# Plan — Hors-ligne complet (app shell PWA)
+## Réponse courte
+**Non, l'app ne peut pas être déployée telle quelle sur Vercel sans modifications importantes.** Plusieurs blocages techniques rendent une migration "tout sur Vercel" coûteuse, et certains éléments (la base de données + l'auth) ne peuvent **pas** être déplacés sans tout réécrire.
 
-Objectif : permettre l'ouverture et l'usage de Smart Daily Tasks **sans aucune connexion Internet** après la première visite, en complément du cache de données et de la file de sync déjà en place.
+---
 
-## Ce qui change
+## Ce qui est déplaçable vs ce qui ne l'est pas
 
-### 1. Ajouter `vite-plugin-pwa` (mode `generateSW`)
-- Installation : `bun add -D vite-plugin-pwa workbox-window`
-- Configuration dans `vite.config.ts` :
-  - `registerType: "autoUpdate"`
-  - `devOptions: { enabled: false }` (jamais en dev/preview Lovable)
-  - `injectRegister: null` (registration manuelle, contrôlée)
-  - `filename: "sw.js"` (à la racine, scope `/`)
-  - Manifest réutilisé depuis le `manifest.webmanifest` existant
-  - Workbox runtime caching :
-    - **Navigations HTML** → `NetworkFirst` (jamais cache-first)
-    - **Assets buildés same-origin (JS/CSS/woff2/images hashés)** → `CacheFirst`
-    - **API Lovable Cloud / Supabase** → `NetworkFirst` court (fallback cache pour lecture seule)
-    - Exclure `/~oauth`, `/api/`, `sw-push.js` du fallback de navigation
-- Le service worker push existant (`public/sw-push.js`) reste **inchangé** — c'est un worker séparé pour les notifications, distinct de l'app shell.
+### ✅ Déplaçable sur Vercel
+- **Frontend React + TanStack Start** : Vercel supporte TanStack Start nativement (preset Vercel disponible).
+- **Server functions (`createServerFn`)** : tournent en Vercel Functions/Edge.
+- **Server routes (`/api/public/*`)** : webhooks et endpoints publics.
+- **PWA / service workers** : statiques, aucun problème.
 
-### 2. Wrapper de registration sécurisé
-Nouveau fichier `src/lib/register-sw.ts` qui :
-- Refuse l'enregistrement si : pas en production, dans une iframe, hostname `id-preview--*` / `preview--*` / `*.lovableproject.com` / `*.lovableproject-dev.com` / `*.beta.lovable.dev`, ou URL contient `?sw=off`.
-- Dans ces cas : désenregistre proactivement tout `/sw.js` déjà installé (kill-switch).
-- Appelé une seule fois depuis `src/router.tsx` (ou point d'entrée client équivalent).
+### ⚠️ Reste obligatoirement chez Supabase (Lovable Cloud)
+- **Base de données PostgreSQL** + Auth + RLS + Storage.
+- **`pg_cron` + `pg_net`** (qui déclenchent les rappels push toutes les minutes).
+- **Edge Function `push-reminders`** : appelée par `pg_cron`, doit rester proche du DB ou être réécrite en endpoint Vercel.
 
-### 3. Indicateur "prêt hors-ligne"
-- Mini toast/badge "App prête hors-ligne ✓" la première fois que le SW termine son install (via `workbox-window`).
-- Toast "Nouvelle version disponible — recharger" quand un SW met à jour (autoUpdate recharge tout seul, on informe juste l'utilisateur).
+Vercel ne fournit **ni base PostgreSQL gérée avec RLS comme Supabase, ni Auth intégré, ni cron natif gratuit illimité**. "Tout sur Vercel" voudrait dire payer un Postgres séparé (Neon/Supabase auto-hébergé) + Vercel Cron (limité sur plan gratuit) + réécrire toute l'auth.
 
-### 4. Documentation utilisateur (pas de code)
-Dans le menu Paramètres, petite note explicative :
-> Hors-ligne : créer, modifier, cocher des tâches/habitudes fonctionne sans réseau. La connexion, l'IA et les notifications push nécessitent Internet.
+---
 
-## Ce qui ne change pas
-- `sw-push.js` (notifications push en arrière-plan) — laissé tel quel.
-- IndexedDB + file de sync (`offline-db.ts`, `sync-queue.ts`) déjà en place.
-- Persistance React Query déjà en place.
-- Aucune modification de schéma / backend.
+## Blocages concrets à corriger avant un build Vercel
 
-## Limites assumées
-- **Auth, IA, push serveur** restent online — pas contournable.
-- **Première visite** sur un appareil exige toujours Internet (le SW doit d'abord se télécharger).
-- **Preview Lovable** : le SW ne s'enregistre **pas** (par design, évite caches périmés). Test hors-ligne uniquement sur l'URL publiée `tache-daily.lovable.app`.
-- iOS : ajout à l'écran d'accueil obligatoire pour un comportement standalone fiable.
+### 1. Configuration de build TanStack Start
+`vite.config.ts` actuel cible Cloudflare Workers (default Lovable). Il faut basculer le preset Nitro sur `vercel` ou `vercel-edge`.
 
-## Validation
-Après build :
-1. Ouvrir l'URL publiée → vérifier SW enregistré (DevTools → Application).
-2. Activer "Offline" dans DevTools, recharger → l'app doit s'ouvrir et naviguer.
-3. Créer une tâche hors-ligne → vérifier qu'elle apparaît, puis se synchronise au retour réseau.
-4. Vérifier que `sw-push.js` est toujours actif en parallèle.
+### 2. Variables d'environnement à recréer dans Vercel
+À copier depuis le projet Lovable vers Vercel :
+- `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`
+- `LOVABLE_API_KEY` (pour l'IA Gemini)
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+
+### 3. Edge Function `push-reminders`
+Deux options :
+- **A (simple)** : la laisser sur Supabase, `pg_cron` continue de l'appeler — aucun changement.
+- **B (tout Vercel)** : la réécrire comme route `/api/public/push-reminders` + remplacer `pg_cron` par **Vercel Cron** (max 1×/jour sur plan Hobby, illimité Pro à 20$/mois).
+
+### 4. Auth Google OAuth
+L'URL de callback Supabase doit être mise à jour pour pointer vers le nouveau domaine Vercel (`https://ton-app.vercel.app`). À configurer dans Supabase Auth Providers.
+
+### 5. URL publique des notifications push
+Le service worker `sw-push.js` et les endpoints `/api/*` doivent tourner sur le **même domaine** que le frontend. Migration = nouveau domaine = les utilisateurs déjà abonnés perdent leur subscription push (ils devront re-cliquer "Activer").
+
+### 6. Coût Lovable AI
+`LOVABLE_API_KEY` continue de fonctionner depuis Vercel (c'est juste un appel HTTP), mais la facturation reste chez Lovable. Pas de blocage.
+
+---
+
+## Recommandation
+
+**Option pragmatique** : reste sur Lovable (`tache-daily.lovable.app`) ou connecte un **domaine custom** à Lovable. C'est gratuit, déjà configuré, et tout fonctionne.
+
+**Si vraiment Vercel** : option hybride "frontend Vercel + backend Supabase intact" (sans toucher `pg_cron` ni la base). Effort estimé : ~30 min de config + tests.
+
+**Tout sur Vercel sans Supabase** : déconseillé — environ 2-3 jours de refonte, coûts mensuels supérieurs, perte des avantages Lovable Cloud (RLS auto, secrets, dashboard).
+
+---
+
+## Plan d'action si tu choisis l'option hybride (recommandée si Vercel)
+
+1. Ajouter le preset Vercel dans `vite.config.ts` (`nitro: { preset: 'vercel' }`).
+2. Push le code sur GitHub (export depuis Lovable).
+3. Importer le repo dans Vercel.
+4. Copier les variables d'env Supabase + VAPID + LOVABLE_API_KEY.
+5. Ajouter l'URL Vercel aux Redirect URLs de Supabase Auth (Google OAuth).
+6. Laisser `push-reminders` sur Supabase (aucun changement).
+7. Tester : auth, IA, push, hors-ligne.
+
+Dis-moi quelle direction tu veux prendre et je détaille / implémente.
