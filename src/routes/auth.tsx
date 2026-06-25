@@ -8,11 +8,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles, CheckCircle2 } from "lucide-react";
 
-const TEST_ACCOUNTS = [
-  { label: "Démo Alice", email: "alice.demo@smartdaily.app", password: "demo1234", name: "Alice Démo" },
-  { label: "Démo Bob", email: "bob.demo@smartdaily.app", password: "demo1234", name: "Bob Démo" },
-];
-
 export const Route = createFileRoute("/auth")({
   ssr: false,
   beforeLoad: async () => {
