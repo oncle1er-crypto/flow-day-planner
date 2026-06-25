@@ -10,8 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { useBackgroundPush } from "@/hooks/use-background-push";
 import type { TablesUpdate } from "@/integrations/supabase/types";
-import { Bell, BellOff, Check } from "lucide-react";
+import { Bell, BellOff, Check, Loader2, Radio } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -22,6 +23,7 @@ function SettingsPage() {
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const { permission, isSupported, isGranted, requestPermission } = usePushNotifications();
+  const bg = useBackgroundPush();
 
   useEffect(() => {
     if (profile) {
@@ -144,6 +146,51 @@ function SettingsPage() {
               className="w-24"
             />
           </div>
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Radio className="h-4 w-4 text-primary" />
+            <h2 className="font-display font-semibold">Notifications en arrière-plan</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Recevez vos rappels même quand l'application est fermée. Nécessite
+            d'installer l'app (ou de l'ajouter à l'écran d'accueil) sur iOS.
+          </p>
+
+          {bg.status === "unsupported" ? (
+            <div className="rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground flex items-center gap-2">
+              <BellOff className="h-4 w-4" /> Votre navigateur ne supporte pas les notifications push.
+            </div>
+          ) : bg.status === "subscribed" ? (
+            <div className="space-y-3">
+              <div className="rounded-xl bg-success/10 text-success p-3 text-xs flex items-center gap-2">
+                <Check className="h-4 w-4" /> Cet appareil recevra les rappels en arrière-plan.
+              </div>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => bg.unsubscribe()}
+                disabled={bg.busy}
+              >
+                {bg.busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BellOff className="h-4 w-4 mr-2" />}
+                Désactiver sur cet appareil
+              </Button>
+            </div>
+          ) : (
+            <Button
+              className="w-full"
+              onClick={() => bg.subscribe()}
+              disabled={bg.busy}
+            >
+              {bg.busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Bell className="h-4 w-4 mr-2" />}
+              Activer sur cet appareil
+            </Button>
+          )}
+
+          {bg.error && (
+            <p className="text-xs text-destructive">{bg.error}</p>
+          )}
         </section>
 
         <section className="rounded-2xl border border-border bg-card/60 p-5">
