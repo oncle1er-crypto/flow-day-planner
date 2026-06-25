@@ -59,7 +59,8 @@ export const askAssistant = createServerFn({ method: "POST" })
     });
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`Assistant indisponible: ${res.status} ${text.slice(0, 200)}`);
+      console.error("[assistant] AI gateway error", res.status, text);
+      throw new Error("Le service AI est temporairement indisponible. Veuillez réessayer.");
     }
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = json.choices?.[0]?.message?.content ?? "";
