@@ -38,7 +38,10 @@ export default defineConfig({
           skipWaiting: true,
           runtimeCaching: [
             {
-              urlPattern: ({ request }) => request.mode === "navigate",
+              urlPattern: ({ request, url }) =>
+                request.mode === "navigate" &&
+                !url.pathname.startsWith("/~oauth") &&
+                !url.pathname.startsWith("/api/"),
               handler: "NetworkFirst",
               options: {
                 cacheName: "html-nav",
