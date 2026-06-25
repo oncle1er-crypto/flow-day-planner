@@ -331,6 +331,66 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminder_dispatch_log: {
+        Row: {
+          dispatched_at: string
+          id: string
+          kind: string
+          ref_id: string
+          scheduled_for: string
+          user_id: string
+        }
+        Insert: {
+          dispatched_at?: string
+          id?: string
+          kind: string
+          ref_id: string
+          scheduled_for: string
+          user_id: string
+        }
+        Update: {
+          dispatched_at?: string
+          id?: string
+          kind?: string
+          ref_id?: string
+          scheduled_for?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subtasks: {
         Row: {
           created_at: string
@@ -483,6 +543,7 @@ export type Database = {
           notifications_enabled: boolean
           sound_enabled: boolean
           theme: string
+          timezone: string
           updated_at: string
           user_id: string
           week_start: number
@@ -496,6 +557,7 @@ export type Database = {
           notifications_enabled?: boolean
           sound_enabled?: boolean
           theme?: string
+          timezone?: string
           updated_at?: string
           user_id: string
           week_start?: number
@@ -509,6 +571,7 @@ export type Database = {
           notifications_enabled?: boolean
           sound_enabled?: boolean
           theme?: string
+          timezone?: string
           updated_at?: string
           user_id?: string
           week_start?: number
