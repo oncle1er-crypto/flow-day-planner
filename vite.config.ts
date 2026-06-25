@@ -13,6 +13,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Force Nitro on outside Lovable and pin the Vercel preset so a self-hosted
+  // Vercel build emits a working server bundle (server functions + SSR).
+  // Ignored inside Lovable builds (Cloudflare is forced there).
+  nitro: { preset: "vercel" },
   vite: {
     plugins: [
       VitePWA({
