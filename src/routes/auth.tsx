@@ -8,11 +8,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles, CheckCircle2 } from "lucide-react";
 
-const TEST_ACCOUNTS = [
-  { label: "Démo Alice", email: "alice.demo@smartdaily.app", password: "demo1234", name: "Alice Démo" },
-  { label: "Démo Bob", email: "bob.demo@smartdaily.app", password: "demo1234", name: "Bob Démo" },
-];
-
 export const Route = createFileRoute("/auth")({
   ssr: false,
   beforeLoad: async () => {
@@ -66,29 +61,6 @@ function AuthPage() {
     }
     if (result.redirected) return;
     navigate({ to: "/today" });
-  };
-
-  const handleQuickLogin = async (acc: typeof TEST_ACCOUNTS[number]) => {
-    setLoading(true);
-    try {
-      let { error } = await supabase.auth.signInWithPassword({ email: acc.email, password: acc.password });
-      if (error && /invalid login credentials/i.test(error.message)) {
-        const { error: signUpErr } = await supabase.auth.signUp({
-          email: acc.email,
-          password: acc.password,
-          options: { data: { full_name: acc.name } },
-        });
-        if (signUpErr) throw signUpErr;
-        ({ error } = await supabase.auth.signInWithPassword({ email: acc.email, password: acc.password }));
-        if (error) throw error;
-      } else if (error) {
-        throw error;
-      }
-      await navigate({ to: "/today" });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erreur");
-      setLoading(false);
-    }
   };
 
   return (
@@ -154,27 +126,6 @@ function AuthPage() {
               {mode === "signup" ? "Créer mon compte" : "Se connecter"}
             </Button>
           </form>
-        </div>
-
-        <div className="rounded-2xl border border-dashed border-border/70 bg-secondary/40 p-4 mt-4">
-          <p className="text-xs font-medium text-muted-foreground mb-2">🧪 Accès de test rapide</p>
-          <div className="grid grid-cols-2 gap-2">
-            {TEST_ACCOUNTS.map((acc) => (
-              <Button
-                key={acc.email}
-                onClick={() => handleQuickLogin(acc)}
-                disabled={loading}
-                variant="secondary"
-                size="sm"
-                className="h-9 text-xs"
-              >
-                {acc.label}
-              </Button>
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-2 leading-tight">
-            Mot de passe : <code>demo1234</code> — créés automatiquement au premier clic.
-          </p>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">

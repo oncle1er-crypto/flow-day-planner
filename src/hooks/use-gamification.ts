@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ACHIEVEMENTS, computeXP, levelFromXP, type Stats } from "@/lib/gamification";
+import { syncAchievements } from "@/lib/achievements.functions";
 import { toast } from "sonner";
 
 function computeMaxStreak(dates: string[]): number {
@@ -70,13 +71,18 @@ export function useGamification() {
     const toUnlock = ACHIEVEMENTS.filter((a) => !known.has(a.key) && a.unlocked(stats, level.level));
     if (!toUnlock.length) return;
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const rows = toUnlock.map((a) => ({ user_id: u.user!.id, achievement_key: a.key }));
-      const { error } = await supabase.from("user_achievements").insert(rows);
-      if (!error) {
-        toUnlock.forEach((a) => toast.success(`🏆 Badge débloqué : ${a.name}`, { description: a.description }));
-        qc.invalidateQueries({ queryKey: ["gamification", "unlocked"] });
+      try {
+        const res = await syncAchievements();
+        const unlockedKeys = new Set(res.unlocked ?? []);
+        const awarded = ACHIEVEMENTS.filter((a) => unlockedKeys.has(a.key));
+        if (awarded.length) {
+          awarded.forEach((a) =>
+            toast.success(`🏆 Badge débloqué : ${a.name}`, { description: a.description }),
+          );
+          qc.invalidateQueries({ queryKey: ["gamification", "unlocked"] });
+        }
+      } catch (err) {
+        console.error("[gamification] sync failed", err);
       }
     })();
   }, [statsQuery.data, unlockedQuery.data, level.level, qc]);
