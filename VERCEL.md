@@ -46,11 +46,14 @@ L'Edge Function `push-reminders` continue de tourner sur Supabase, déclenchée 
 
 ## 6. Build technique
 
-`vite.config.ts` contient déjà :
-```ts
-nitro: { preset: "vercel" }
-```
-→ Nitro génère automatiquement le bon format (`.vercel/output/`) reconnu par Vercel.
+Pour que Nitro génère le bundle au format Vercel (`.vercel/output/`), ajoute la
+variable d'environnement suivante dans **Project Settings → Environment Variables**
+sur Vercel (sinon le build par défaut cible Cloudflare et ne fonctionne pas) :
+
+- `NITRO_PRESET` = `vercel`
+
+⚠️ Ne pas la définir sur Lovable Cloud — cela empêcherait l'injection des
+variables Supabase côté serveur sur `tache-daily.lovable.app`.
 
 ## 7. Tester après déploiement
 
