@@ -40,7 +40,7 @@ function HistoryPage() {
   const { data: tasks = [], isLoading } = useTasks({ range: [fromISO, toISO] });
   const { data: categories = [] } = useCategories();
 
-  const stats = useMemo(() => computeStats(tasks, from, to), [tasks, from, to]);
+  const stats = useMemo(() => computeStats(tasks, from, to, categories), [tasks, from, to, categories]);
 
   return (
     <AppShell title="Historique & bilan" subtitle={label}>
@@ -159,7 +159,8 @@ function HistoryPage() {
   );
 }
 
-function computeStats(tasks: Task[], from: Date, to: Date) {
+function computeStats(tasks: Task[], from: Date, to: Date, categories: { id: string; name: string }[]) {
+  const catName = (id: string | null) => categories.find((c) => c.id === id)?.name ?? "Sans catégorie";
   const inRange = tasks.filter((t) => t.due_date && isWithinInterval(parseISO(t.due_date), { start: from, end: to }));
   const done = inRange.filter((t) => t.status === "done").length;
   const total = inRange.length;
@@ -181,7 +182,7 @@ function computeStats(tasks: Task[], from: Date, to: Date) {
   const byCat = new Map<string | null, { total: number; done: number; name: string }>();
   for (const t of inRange) {
     const k = t.category_id;
-    const cur = byCat.get(k) ?? { total: 0, done: 0, name: "Sans catégorie" };
+    const cur = byCat.get(k) ?? { total: 0, done: 0, name: catName(k) };
     cur.total++;
     if (t.status === "done") cur.done++;
     byCat.set(k, cur);
