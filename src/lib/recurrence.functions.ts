@@ -11,7 +11,6 @@ function isDuplicate(err: { code?: string } | null): boolean {
   return err?.code === "23505";
 }
 
-type Client = Parameters<typeof buildNextOccurrence> extends never ? never : any;
 
 async function createOccurrence(
   supabase: any,
