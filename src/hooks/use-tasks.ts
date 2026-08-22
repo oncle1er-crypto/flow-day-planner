@@ -82,6 +82,16 @@ export function useToggleTask() {
       }
       const { error } = await supabase.from("tasks").update(patch).eq("id", id);
       if (error) throw error;
+
+      // Recurring task completed → create the next occurrence (idempotent server-side).
+      if (done) {
+        try {
+          const res = await generateNextOccurrence({ data: { taskId: id } });
+          if (res?.created) toast.success("Prochaine occurrence planifiée");
+        } catch (err) {
+          console.error("[recurrence] next occurrence failed", err);
+        }
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tasks"] }),
   });
