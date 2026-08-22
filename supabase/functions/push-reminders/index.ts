@@ -187,13 +187,33 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true, sent: 0 }), { headers: { "content-type": "application/json" } });
   }
 
-  // Anti-doublon
+  // Anti-doublon : une seule dispatch par (user, kind, ref, scheduled_for)
   const toSend: D[] = [];
   for (const d of due) {
     const { error } = await sb.from("reminder_dispatch_log").insert({
       user_id: d.user_id, kind: d.kind, ref_id: d.ref_id, scheduled_for: d.scheduled_for,
     });
     if (!error) toSend.push(d);
+  }
+
+  // Notifications in-app : une ligne par rappel réellement dispatché.
+  // dedupe_key (minute) est partagé avec le push => aucun doublon entre les deux canaux,
+  // et la ligne est créée même si l'utilisateur n'a aucun abonnement push.
+  if (toSend.length > 0) {
+    const rows = toSend.map((d) => ({
+      user_id: d.user_id,
+      task_id: d.kind === "task" ? d.ref_id : null,
+      title: d.title,
+      body: d.body,
+      kind: d.kind === "daily" ? "daily" : "reminder",
+      scheduled_for: d.scheduled_for,
+      delivered_at: new Date().toISOString(),
+      dedupe_key: `${d.kind}:${d.ref_id}:${d.scheduled_for.slice(0, 16)}`,
+    }));
+    const { error: nErr } = await sb
+      .from("notifications")
+      .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
+    if (nErr) console.error("notifications insert failed", nErr.message);
   }
   if (toSend.length === 0) {
     return new Response(JSON.stringify({ ok: true, sent: 0, candidates: due.length }), { headers: { "content-type": "application/json" } });
