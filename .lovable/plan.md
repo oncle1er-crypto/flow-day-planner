@@ -1,71 +1,82 @@
-## Réponse courte
-**Non, l'app ne peut pas être déployée telle quelle sur Vercel sans modifications importantes.** Plusieurs blocages techniques rendent une migration "tout sur Vercel" coûteuse, et certains éléments (la base de données + l'auth) ne peuvent **pas** être déplacés sans tout réécrire.
+# Audit complet (lecture seule) — état de préparation à la production
 
----
+Note préalable : le nom dans le code est **Smart Daily Tasks** (`public/manifest.webmanifest`, `src/routes/__root.tsx`), pas « Flow Day Planner ». À trancher avant publication.
 
-## Ce qui est déplaçable vs ce qui ne l'est pas
+## Ce qui est réellement fonctionnel
 
-### ✅ Déplaçable sur Vercel
-- **Frontend React + TanStack Start** : Vercel supporte TanStack Start nativement (preset Vercel disponible).
-- **Server functions (`createServerFn`)** : tournent en Vercel Functions/Edge.
-- **Server routes (`/api/public/*`)** : webhooks et endpoints publics.
-- **PWA / service workers** : statiques, aucun problème.
+- **Auth email/mot de passe** : inscription + connexion (`src/routes/auth.tsx`), garde d'accès unique et correcte (`src/routes/_authenticated/route.tsx`, `ssr:false`), redirection d'entrée (`src/routes/index.tsx`).
+- **Tâches / sous-tâches / catégories** : CRUD complet, priorités, filtres (`src/hooks/use-tasks.ts`, `use-subtasks.ts`, `use-categories.ts`).
+- **Habitudes, objectifs, focus** : CRUD + streaks + Pomodoro persisté (`use-habits.ts`, `use-goals.ts`, `use-focus-sessions.ts`, `focus.tsx`).
+- **Historique / bilan** : calculs 100 % côté client sur données réelles (`history.tsx`).
+- **Base de données** : 11 migrations, toutes les tables ont GRANTs + RLS `TO authenticated` scoping `auth.uid()`, triggers `updated_at`, seed catégories à l'inscription.
+- **Gamification** : validation serveur des badges via `src/lib/achievements.functions.ts` (INSERT client révoqué).
+- **Offline** : cache React Query persisté en IndexedDB + file de sync (`router.tsx`, `offline-db.ts`, `sync-queue.ts`), App Shell PWA (`vite.config.ts`).
+- **Assistant IA** : opérationnel via Lovable AI, erreurs API masquées (`assistant.functions.ts`).
 
-### ⚠️ Reste obligatoirement chez Supabase (Lovable Cloud)
-- **Base de données PostgreSQL** + Auth + RLS + Storage.
-- **`pg_cron` + `pg_net`** (qui déclenchent les rappels push toutes les minutes).
-- **Edge Function `push-reminders`** : appelée par `pg_cron`, doit rester proche du DB ou être réécrite en endpoint Vercel.
+## Partiel / simulé / non branché
 
-Vercel ne fournit **ni base PostgreSQL gérée avec RLS comme Supabase, ni Auth intégré, ni cron natif gratuit illimité**. "Tout sur Vercel" voudrait dire payer un Postgres séparé (Neon/Supabase auto-hébergé) + Vercel Cron (limité sur plan gratuit) + réécrire toute l'auth.
+- **Centre de notifications in-app** : la page lit `notifications`, mais **aucun code n'insère jamais de ligne** (ni client, ni `supabase/functions/push-reminders/index.ts` qui n'écrit que dans `reminder_dispatch_log`). Écran vide par construction.
+- **Récurrence des tâches** : colonnes `recurrence`, `recurrence_config`, `recurrence_end_date` en base, mais **aucune logique de génération** (`recurrence` n'apparaît que dans l'affichage `TaskCard.tsx`). Fonctionnalité promise, non implémentée.
+- **Rappels locaux** : `useScheduledReminders` ne planifie que si l'onglet reste ouvert (`setTimeout`), fenêtre 24 h, et parse `new Date(\`${due_date}T${time}\`)` → décalage selon le fuseau de l'appareil.
+- **Push en arrière-plan** : chaîne complète (VAPID, `sw-push.js`, cron minute), mais dépend d'un cron appelant une URL et un token en dur (voir P0).
+- **Bilan hebdomadaire « chaque fin de semaine »** : consultable à la demande, mais **aucune notification/déclenchement automatique** de fin de semaine.
+- **Profil** : édition nom/téléphone + déconnexion. Pas de reset mot de passe, pas de suppression de compte, pas d'avatar (aucun bucket storage).
+- **Tests automatisés** : **aucun** (pas de vitest, aucun fichier de test).
 
----
+## Liste priorisée
 
-## Blocages concrets à corriger avant un build Vercel
+### P0 — bloquant publication
 
-### 1. Configuration de build TanStack Start
-`vite.config.ts` actuel cible Cloudflare Workers (default Lovable). Il faut basculer le preset Nitro sur `vercel` ou `vercel-edge`.
+1. **Clé `service_role` en clair dans le dépôt** — `supabase/migrations/20260625080054_*.sql` contient le JWT service_role dans le `cron.schedule` (header Authorization). Fuite totale de la base si le code est exporté/publié sur GitHub. → remplacer par un secret Vault (`vault.decrypted_secrets`) ou un endpoint `/api/public/push-reminders` protégé par un secret partagé.
+2. **Notifications in-app fantômes** — table jamais alimentée. Soit brancher l'insertion (edge function / server fn au moment du rappel), soit retirer l'onglet.
+3. **Récurrence non implémentée** — soit implémenter la génération d'occurrences, soit masquer le champ dans `TaskFormDialog` pour ne pas promettre une fonction inexistante.
+4. **Reset de mot de passe absent** — un utilisateur qui oublie son mot de passe est définitivement bloqué (`auth.tsx` n'a aucun `resetPasswordForEmail`).
+5. **Aucun test, aucun garde-fou de non-régression** avant mise en production.
 
-### 2. Variables d'environnement à recréer dans Vercel
-À copier depuis le projet Lovable vers Vercel :
-- `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`
-- `LOVABLE_API_KEY` (pour l'IA Gemini)
-- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+### P1 — fiabilité / cohérence
 
-### 3. Edge Function `push-reminders`
-Deux options :
-- **A (simple)** : la laisser sur Supabase, `pg_cron` continue de l'appeler — aucun changement.
-- **B (tout Vercel)** : la réécrire comme route `/api/public/push-reminders` + remplacer `pg_cron` par **Vercel Cron** (max 1×/jour sur plan Hobby, illimité Pro à 20$/mois).
+6. **Fuseaux horaires** — `use-push-notifications.ts` et `use-gamification.ts`/`achievements.functions.ts` utilisent `toISOString().slice(0,10)`, ce qui décale les dates hors UTC ; `dates.ts` est correct. Uniformiser sur un helper unique.
+7. **File de sync incomplète** — `SyncOp.tempId` est déclaré mais jamais exploité (`sync-queue.ts`) : une tâche créée hors-ligne puis modifiée hors-ligne produit un `update` sur un id temporaire → op qui échouera et **bloque toute la file** (`break` au premier échec, sans compteur de tentatives ni mise en quarantaine).
+8. **Sous-tâches / objectifs / focus / notifications non offline** — seules `tasks` et `habits` passent par la file ; les autres mutations échouent silencieusement hors-ligne.
+9. **Aucune frontière d'erreur par route** — seul `__root.tsx` a `errorComponent`. Une erreur réseau sur une page casse tout l'écran au lieu du bloc concerné. Idem : aucun état `pending`/skeleton, les listes affichent « vide » pendant le chargement (`data: items = []`).
+10. **`suppression de compte` / RGPD** — pas de suppression de compte ni d'export de données.
+11. **Cache Supabase REST en `NetworkFirst`** (`vite.config.ts`) : des réponses de données utilisateur sont stockées dans le Cache Storage, non purgées à la déconnexion (fuite locale sur appareil partagé).
 
-### 4. Auth Google OAuth
-L'URL de callback Supabase doit être mise à jour pour pointer vers le nouveau domaine Vercel (`https://ton-app.vercel.app`). À configurer dans Supabase Auth Providers.
+### P2 — UX & qualité
 
-### 5. URL publique des notifications push
-Le service worker `sw-push.js` et les endpoints `/api/*` doivent tourner sur le **même domaine** que le frontend. Migration = nouveau domaine = les utilisateurs déjà abonnés perdent leur subscription push (ils devront re-cliquer "Activer").
+12. **Nom d'app incohérent** (Smart Daily Tasks vs Flow Day Planner) sur manifest, `<title>`, page auth.
+13. **Barre de navigation à 6 entrées** + assistant relégué : navigation dense sur petit écran (`BottomNav.tsx`).
+14. **Pas de `head()` par route** ; tout hérite de `__root`. Peu critique (app privée) mais à ajuster pour `/auth` et `/`.
+15. **Fichier `calendar.tsx`** finit par un commentaire résiduel `// fix unused import` ; vue calendrier limitée à la semaine (pas de vue mois).
+16. **Requêtes gamification non paginées** : `habit_logs` et `focus_sessions` chargés intégralement à chaque page (via `AppShell`), coût croissant avec l'usage.
+17. **Onboarding absent** : premier lancement = écran vide sans guidage.
 
-### 6. Coût Lovable AI
-`LOVABLE_API_KEY` continue de fonctionner depuis Vercel (c'est juste un appel HTTP), mais la facturation reste chez Lovable. Pas de blocage.
+### P3 — polish
 
----
+18. Icônes PWA : une seule taille `icon-512.png`, pas de maskable dédiée ni de screenshots manifest.
+19. Pas de page « Conditions / Confidentialité » alors que `auth.tsx` y fait référence.
+20. Pas de monitoring produit (aucun suivi d'erreurs applicatif côté client hors reporting Lovable).
+21. `sitemap[.]xml.ts` pour une app 100 % privée : peu utile, à vérifier.
 
-## Recommandation
+## Plan de finition par vagues
 
-**Option pragmatique** : reste sur Lovable (`tache-daily.lovable.app`) ou connecte un **domaine custom** à Lovable. C'est gratuit, déjà configuré, et tout fonctionne.
+**Vague 1 — Sécurité & blocages (P0)**
+Retirer le service_role du dépôt (secret Vault ou endpoint signé), rebrancher ou retirer les notifications in-app, décider récurrence (implémenter ou masquer), ajouter le flux « mot de passe oublié » + page de réinitialisation.
 
-**Si vraiment Vercel** : option hybride "frontend Vercel + backend Supabase intact" (sans toucher `pg_cron` ni la base). Effort estimé : ~30 min de config + tests.
+**Vague 2 — Robustesse données (P1 6-8, 11)**
+Helper de date/fuseau unique, refonte de la file de sync (résolution des tempId, retries, quarantaine, badge d'échec), extension de la file aux sous-tâches/objectifs/focus, purge des caches Supabase à la déconnexion.
 
-**Tout sur Vercel sans Supabase** : déconseillé — environ 2-3 jours de refonte, coûts mensuels supérieurs, perte des avantages Lovable Cloud (RLS auto, secrets, dashboard).
+**Vague 3 — Robustesse UI (P1 9-10, P2 17)**
+`errorComponent` + skeletons de chargement par route, distinction « vide » vs « chargement », suppression de compte + export JSON, onboarding en 3 écrans.
 
----
+**Vague 4 — Tests & CI**
+Ajouter Vitest : utilitaires (`habit-utils`, `goal-utils`, `gamification`, dates), file de sync (mock IndexedDB), validateurs Zod des server fns ; puis un parcours Playwright bout-en-bout (inscription → tâche → complétion → bilan → hors-ligne/retour).
 
-## Plan d'action si tu choisis l'option hybride (recommandée si Vercel)
+**Vague 5 — Publication**
+Harmonisation du nom et du branding, icônes/maskable/screenshots, pages légales, allègement de la navigation, vérification finale du build et du parcours push sur appareil réel (iOS = installation à l'écran d'accueil obligatoire).
 
-1. Ajouter le preset Vercel dans `vite.config.ts` (`nitro: { preset: 'vercel' }`).
-2. Push le code sur GitHub (export depuis Lovable).
-3. Importer le repo dans Vercel.
-4. Copier les variables d'env Supabase + VAPID + LOVABLE_API_KEY.
-5. Ajouter l'URL Vercel aux Redirect URLs de Supabase Auth (Google OAuth).
-6. Laisser `push-reminders` sur Supabase (aucun changement).
-7. Tester : auth, IA, push, hors-ligne.
+## Détails techniques de référence
 
-Dis-moi quelle direction tu veux prendre et je détaille / implémente.
+- Aucun problème de build : `/tmp/observability/build-errors.log` = `build OK`.
+- RLS vérifiée sur les 12 tables : toutes en `TO authenticated`, `reminder_dispatch_log` en lecture seule, `user_achievements` sans INSERT client — posture correcte.
+- Pile : TanStack Start + React 19, React Query persisté, `vite-plugin-pwa`, Lovable Cloud (Supabase) ; une seule edge function (`push-reminders`), le reste en `createServerFn`.
