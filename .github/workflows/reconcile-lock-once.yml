@@ -27,15 +27,24 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           p = Path('src/routes/auth.tsx')
-          s = p.read_text()
-          s = s.replace('Smart Daily Tasks', 'Flow Day Planner')
+          s = p.read_text().replace('Smart Daily Tasks', 'Flow Day Planner')
           p.write_text(s)
           PY
+      - name: Format imported Lovable/MCP files
+        run: |
+          npx prettier --write \
+            src/lib/mcp \
+            'src/routes/[.]lovable.oauth.consent.tsx' \
+            'src/routes/[.mcp]' \
+            'src/routes/[.well-known]' \
+            src/routes/mcp.ts \
+            src/routes/auth.tsx \
+            supabase/functions/push-reminders/index.ts
       - name: Commit reconciled files
         run: |
           if git diff --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json src/routes/auth.tsx
-          git commit -m "chore: reconcile MCP lockfile and auth branding [skip-reconcile]"
+          git add package-lock.json src/lib/mcp src/routes supabase/functions/push-reminders/index.ts
+          git commit -m "chore: reconcile MCP lockfile, formatting and branding [skip-reconcile]"
           git push origin HEAD:chatgpt/finish-flow-day-planner
