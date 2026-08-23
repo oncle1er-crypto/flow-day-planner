@@ -64,7 +64,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/today`,
+            emailRedirectTo: `${window.location.origin}${returnTo}`,
             data: { full_name: name },
           },
         });
@@ -74,7 +74,7 @@ function AuthPage() {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
       }
-      navigate({ to: "/today" });
+      window.location.href = returnTo;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Une erreur est survenue.";
       setError(msg);
