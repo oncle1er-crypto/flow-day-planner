@@ -31,12 +31,16 @@ function TodayPage() {
       <div className="space-y-6 pt-4">
         {overdue.length > 0 && (
           <Section title="En retard" icon={AlertTriangle} tone="destructive" count={overdue.length}>
-            {overdue.slice(0, 5).map((t) => <TaskCard key={t.id} task={t} categories={categories} />)}
+            {overdue.slice(0, 5).map((t) => (
+              <TaskCard key={t.id} task={t} categories={categories} />
+            ))}
           </Section>
         )}
         {urgent.length > 0 && (
           <Section title="Urgent" icon={Flame} tone="warning" count={urgent.length}>
-            {urgent.map((t) => <TaskCard key={t.id} task={t} categories={categories} />)}
+            {urgent.map((t) => (
+              <TaskCard key={t.id} task={t} categories={categories} />
+            ))}
           </Section>
         )}
         <Section title="À faire aujourd'hui" icon={ListChecks} tone="primary" count={todo.length}>
@@ -50,12 +54,16 @@ function TodayPage() {
               action={<Button onClick={() => setOpen(true)}>Ajouter une tâche</Button>}
             />
           ) : (
-            todo.filter((t) => t.priority !== "urgent").map((t) => <TaskCard key={t.id} task={t} categories={categories} />)
+            todo
+              .filter((t) => t.priority !== "urgent")
+              .map((t) => <TaskCard key={t.id} task={t} categories={categories} />)
           )}
         </Section>
         {done.length > 0 && (
           <Section title="Terminées" icon={CheckCircle2} tone="success" count={done.length}>
-            {done.map((t) => <TaskCard key={t.id} task={t} categories={categories} />)}
+            {done.map((t) => (
+              <TaskCard key={t.id} task={t} categories={categories} />
+            ))}
           </Section>
         )}
       </div>
@@ -65,8 +73,25 @@ function TodayPage() {
   );
 }
 
-function Section({ title, icon: Icon, tone, count, children }: { title: string; icon: typeof ListChecks; tone: "primary" | "destructive" | "warning" | "success"; count: number; children: React.ReactNode }) {
-  const t = { primary: "text-primary", destructive: "text-destructive", warning: "text-warning", success: "text-success" }[tone];
+function Section({
+  title,
+  icon: Icon,
+  tone,
+  count,
+  children,
+}: {
+  title: string;
+  icon: typeof ListChecks;
+  tone: "primary" | "destructive" | "warning" | "success";
+  count: number;
+  children: React.ReactNode;
+}) {
+  const t = {
+    primary: "text-primary",
+    destructive: "text-destructive",
+    warning: "text-warning",
+    success: "text-success",
+  }[tone];
   return (
     <section>
       <div className="flex items-center gap-2 mb-3">

@@ -19,11 +19,13 @@ Depuis Lovable : menu **+** (en bas à gauche du chat) → **GitHub → Connect 
 **Project Settings → Environment Variables** (toutes en `Production`, `Preview`, `Development`) :
 
 ### Côté client (préfixe `VITE_`)
+
 - `VITE_SUPABASE_URL` = `https://sjdhvzjaqarlqcqpkfzd.supabase.co`
 - `VITE_SUPABASE_PUBLISHABLE_KEY` = (voir `.env` dans Lovable)
 - `VITE_SUPABASE_PROJECT_ID` = `sjdhvzjaqarlqcqpkfzd`
 
 ### Côté serveur
+
 - `SUPABASE_URL` = identique à `VITE_SUPABASE_URL`
 - `SUPABASE_PUBLISHABLE_KEY` = identique à `VITE_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` = à récupérer dans Lovable Cloud (Settings → API keys) — **secret, ne jamais préfixer `VITE_`**
@@ -33,6 +35,7 @@ Depuis Lovable : menu **+** (en bas à gauche du chat) → **GitHub → Connect 
 ## 4. Mettre à jour Supabase Auth (Google OAuth)
 
 Dans Lovable Cloud → **Authentication → URL Configuration** :
+
 - Ajoute ton URL Vercel dans **Redirect URLs** : `https://<ton-app>.vercel.app/**`
 - Si tu utilises un domaine custom, ajoute-le aussi.
 

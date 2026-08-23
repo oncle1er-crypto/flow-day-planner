@@ -58,7 +58,9 @@ export function useOfflineSync() {
       const { applied, failed } = await flushQueue();
       await refreshCount();
       if (applied > 0) {
-        toast.success(`${applied} modification${applied > 1 ? "s" : ""} synchronisée${applied > 1 ? "s" : ""}`);
+        toast.success(
+          `${applied} modification${applied > 1 ? "s" : ""} synchronisée${applied > 1 ? "s" : ""}`,
+        );
         qc.invalidateQueries();
       }
       if (failed > 0) {

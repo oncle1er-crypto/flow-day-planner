@@ -7,7 +7,11 @@ export function useProfile() {
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return null;
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", u.user.id)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

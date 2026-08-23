@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -10,7 +17,16 @@ import { DAY_LABELS } from "@/lib/habit-utils";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const COLORS = ["#A78BFA", "#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6"];
+const COLORS = [
+  "#A78BFA",
+  "#6366F1",
+  "#10B981",
+  "#F59E0B",
+  "#EF4444",
+  "#3B82F6",
+  "#EC4899",
+  "#14B8A6",
+];
 
 export function HabitFormDialog({
   open,
@@ -70,17 +86,31 @@ export function HabitFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">{editing ? "Modifier l'habitude" : "Nouvelle habitude"}</DialogTitle>
+          <DialogTitle className="font-display">
+            {editing ? "Modifier l'habitude" : "Nouvelle habitude"}
+          </DialogTitle>
           <DialogDescription>Construisez une routine durable.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="hname">Nom</Label>
-            <Input id="hname" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex : Méditer 10 min" autoFocus />
+            <Input
+              id="hname"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex : Méditer 10 min"
+              autoFocus
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="hdesc">Description</Label>
-            <Textarea id="hdesc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Pourquoi cette habitude ?" />
+            <Textarea
+              id="hdesc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Pourquoi cette habitude ?"
+            />
           </div>
           <div className="space-y-2">
             <Label>Couleur</Label>
@@ -90,7 +120,10 @@ export function HabitFormDialog({
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={cn("h-8 w-8 rounded-full border-2 transition", color === c ? "border-foreground scale-110" : "border-transparent")}
+                  className={cn(
+                    "h-8 w-8 rounded-full border-2 transition",
+                    color === c ? "border-foreground scale-110" : "border-transparent",
+                  )}
                   style={{ backgroundColor: c }}
                   aria-label={c}
                 />
@@ -109,7 +142,9 @@ export function HabitFormDialog({
                     onClick={() => toggleDay(i)}
                     className={cn(
                       "h-10 rounded-lg text-sm font-medium transition border",
-                      active ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/40 text-muted-foreground border-border",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/40 text-muted-foreground border-border",
                     )}
                   >
                     {lbl}
@@ -120,7 +155,12 @@ export function HabitFormDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="hrem">Rappel (optionnel)</Label>
-            <Input id="hrem" type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} />
+            <Input
+              id="hrem"
+              type="time"
+              value={reminderTime}
+              onChange={(e) => setReminderTime(e.target.value)}
+            />
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
@@ -138,8 +178,13 @@ export function HabitFormDialog({
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={save} disabled={!name.trim() || days.length === 0 || create.isPending || update.isPending}>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button
+            onClick={save}
+            disabled={!name.trim() || days.length === 0 || create.isPending || update.isPending}
+          >
             {editing ? "Enregistrer" : "Créer"}
           </Button>
         </DialogFooter>

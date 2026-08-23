@@ -37,9 +37,19 @@ function HabitsPage() {
   return (
     <AppShell
       title="Habitudes"
-      subtitle={habits.length ? `${habits.length} routine${habits.length > 1 ? "s" : ""}` : "Construisez vos routines"}
+      subtitle={
+        habits.length
+          ? `${habits.length} routine${habits.length > 1 ? "s" : ""}`
+          : "Construisez vos routines"
+      }
       action={
-        <Button size="sm" onClick={() => { setEditing(undefined); setOpen(true); }}>
+        <Button
+          size="sm"
+          onClick={() => {
+            setEditing(undefined);
+            setOpen(true);
+          }}
+        >
           <Plus className="h-4 w-4 mr-1" /> Nouvelle
         </Button>
       }
@@ -50,7 +60,16 @@ function HabitsPage() {
             icon={Sparkles}
             title="Aucune habitude"
             description="Ajoutez votre première routine quotidienne."
-            action={<Button onClick={() => { setEditing(undefined); setOpen(true); }}>Créer une habitude</Button>}
+            action={
+              <Button
+                onClick={() => {
+                  setEditing(undefined);
+                  setOpen(true);
+                }}
+              >
+                Créer une habitude
+              </Button>
+            }
           />
         ) : (
           habits.map((h) => (
@@ -58,7 +77,10 @@ function HabitsPage() {
               key={h.id}
               habit={h}
               logs={logsByHabit.get(h.id) ?? []}
-              onEdit={() => { setEditing(h); setOpen(true); }}
+              onEdit={() => {
+                setEditing(h);
+                setOpen(true);
+              }}
             />
           ))
         )}
@@ -68,7 +90,15 @@ function HabitsPage() {
   );
 }
 
-function HabitRow({ habit, logs, onEdit }: { habit: Habit; logs: { log_date: string }[]; onEdit: () => void }) {
+function HabitRow({
+  habit,
+  logs,
+  onEdit,
+}: {
+  habit: Habit;
+  logs: { log_date: string }[];
+  onEdit: () => void;
+}) {
   const toggle = useToggleHabitDay();
   const streak = computeStreak(habit, logs as never);
   const week = last7Days();
@@ -81,17 +111,30 @@ function HabitRow({ habit, logs, onEdit }: { habit: Habit; logs: { log_date: str
     <article className="rounded-2xl border border-border bg-gradient-card p-4 shadow-card">
       <div className="flex items-start gap-3">
         <button
-          onClick={() => dueToday && toggle.mutate({ habitId: habit.id, date: todayKey, done: !doneToday })}
+          onClick={() =>
+            dueToday && toggle.mutate({ habitId: habit.id, date: todayKey, done: !doneToday })
+          }
           disabled={!dueToday}
           className={cn(
             "mt-0.5 h-10 w-10 shrink-0 rounded-2xl grid place-items-center border-2 transition",
             doneToday ? "border-transparent text-primary-foreground" : "border-border",
             !dueToday && "opacity-40",
           )}
-          style={doneToday ? { backgroundColor: habit.color ?? undefined, borderColor: habit.color ?? undefined } : undefined}
+          style={
+            doneToday
+              ? { backgroundColor: habit.color ?? undefined, borderColor: habit.color ?? undefined }
+              : undefined
+          }
           aria-label={doneToday ? "Annuler aujourd'hui" : "Valider aujourd'hui"}
         >
-          {doneToday ? <Check className="h-5 w-5" strokeWidth={3} /> : <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: habit.color ?? undefined }} />}
+          {doneToday ? (
+            <Check className="h-5 w-5" strokeWidth={3} />
+          ) : (
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: habit.color ?? undefined }}
+            />
+          )}
         </button>
         <button onClick={onEdit} className="flex-1 text-left min-w-0">
           <div className="flex items-center justify-between gap-2">
@@ -113,7 +156,12 @@ function HabitRow({ habit, logs, onEdit }: { habit: Habit; logs: { log_date: str
               const isToday = d === todayKey;
               return (
                 <div key={d} className="flex flex-col items-center gap-1">
-                  <span className={cn("text-[10px]", isToday ? "text-primary font-semibold" : "text-muted-foreground")}>
+                  <span
+                    className={cn(
+                      "text-[10px]",
+                      isToday ? "text-primary font-semibold" : "text-muted-foreground",
+                    )}
+                  >
                     {DAY_LABELS[date.getDay()]}
                   </span>
                   <div

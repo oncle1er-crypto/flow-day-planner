@@ -8,7 +8,16 @@ import { isOverdue } from "@/lib/task-utils";
 import { Progress } from "@/components/ui/progress";
 import { TaskCard } from "@/components/app/TaskCard";
 import { useCategories } from "@/hooks/use-categories";
-import { ListChecks, AlertTriangle, CheckCircle2, Flame, CalendarDays, Sparkles, ArrowRight, Trophy } from "lucide-react";
+import {
+  ListChecks,
+  AlertTriangle,
+  CheckCircle2,
+  Flame,
+  CalendarDays,
+  Sparkles,
+  ArrowRight,
+  Trophy,
+} from "lucide-react";
 import { useGamification } from "@/hooks/use-gamification";
 import { useState } from "react";
 import { TaskFormDialog } from "@/components/app/TaskFormDialog";
@@ -50,11 +59,17 @@ function Dashboard() {
             <div className="flex items-baseline justify-between mb-3">
               <div>
                 <p className="text-sm text-muted-foreground">Progression du jour</p>
-                <p className="font-display text-4xl font-bold mt-1">{progress}<span className="text-2xl text-muted-foreground">%</span></p>
+                <p className="font-display text-4xl font-bold mt-1">
+                  {progress}
+                  <span className="text-2xl text-muted-foreground">%</span>
+                </p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Terminées</p>
-                <p className="font-display text-2xl font-semibold">{done}<span className="text-muted-foreground text-base">/{total}</span></p>
+                <p className="font-display text-2xl font-semibold">
+                  {done}
+                  <span className="text-muted-foreground text-base">/{total}</span>
+                </p>
               </div>
             </div>
             <Progress value={progress} className="h-2" />
@@ -72,8 +87,12 @@ function Dashboard() {
         {/* Quick actions */}
         <section className="grid grid-cols-3 gap-3">
           <QuickAction icon={ListChecks} label="Tâche" onClick={() => setOpenNew(true)} />
-          <Link to="/calendar" className="contents"><QuickAction icon={CalendarDays} label="Agenda" /></Link>
-          <Link to="/assistant" className="contents"><QuickAction icon={Sparkles} label="Planifier" /></Link>
+          <Link to="/calendar" className="contents">
+            <QuickAction icon={CalendarDays} label="Agenda" />
+          </Link>
+          <Link to="/assistant" className="contents">
+            <QuickAction icon={Sparkles} label="Planifier" />
+          </Link>
         </section>
 
         {/* Level card */}
@@ -93,7 +112,9 @@ function Dashboard() {
               <div className="mt-2">
                 <Progress value={level.progressPct} className="h-1.5" />
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1">{level.xpInLevel}/{level.xpForNext} XP → niveau {level.level + 1}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {level.xpInLevel}/{level.xpForNext} XP → niveau {level.level + 1}
+              </p>
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </div>
@@ -111,7 +132,9 @@ function Dashboard() {
             {upcoming.length === 0 ? (
               <div className="rounded-2xl border border-border bg-card/40 p-6 text-center">
                 <p className="text-sm text-muted-foreground">Vous êtes à jour. Bravo !</p>
-                <Button variant="link" onClick={() => setOpenNew(true)}>Ajouter une tâche</Button>
+                <Button variant="link" onClick={() => setOpenNew(true)}>
+                  Ajouter une tâche
+                </Button>
               </div>
             ) : (
               upcoming.map((t) => <TaskCard key={t.id} task={t} categories={categories} />)
@@ -121,7 +144,9 @@ function Dashboard() {
 
         {/* Quote */}
         <section className="rounded-2xl border border-border bg-card/60 p-5">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Citation du jour</p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            Citation du jour
+          </p>
           <p className="font-display text-base leading-relaxed">"{quote}"</p>
         </section>
       </div>
@@ -132,7 +157,17 @@ function Dashboard() {
   );
 }
 
-function StatTile({ icon: Icon, label, value, tint }: { icon: typeof ListChecks; label: string; value: number; tint: "primary" | "warning" | "destructive" | "success" }) {
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  tint,
+}: {
+  icon: typeof ListChecks;
+  label: string;
+  value: number;
+  tint: "primary" | "warning" | "destructive" | "success";
+}) {
   const tintClass = {
     primary: "text-primary bg-primary/10",
     warning: "text-warning bg-warning/10",
@@ -150,7 +185,15 @@ function StatTile({ icon: Icon, label, value, tint }: { icon: typeof ListChecks;
   );
 }
 
-function QuickAction({ icon: Icon, label, onClick }: { icon: typeof ListChecks; label: string; onClick?: () => void }) {
+function QuickAction({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: typeof ListChecks;
+  label: string;
+  onClick?: () => void;
+}) {
   return (
     <button
       onClick={onClick}

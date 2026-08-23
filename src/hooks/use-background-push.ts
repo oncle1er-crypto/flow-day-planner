@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { savePushSubscription, deletePushSubscription, saveUserTimezone } from "@/lib/push.functions";
+import {
+  savePushSubscription,
+  deletePushSubscription,
+  saveUserTimezone,
+} from "@/lib/push.functions";
 import { VAPID_PUBLIC_KEY, urlBase64ToUint8Array } from "@/lib/vapid";
 
 type Status = "unsupported" | "idle" | "subscribed";

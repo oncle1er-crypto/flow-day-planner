@@ -82,7 +82,15 @@ export function useDeleteHabit() {
 export function useToggleHabitDay() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ habitId, date, done }: { habitId: string; date: string; done: boolean }) => {
+    mutationFn: async ({
+      habitId,
+      date,
+      done,
+    }: {
+      habitId: string;
+      date: string;
+      done: boolean;
+    }) => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Non authentifié");
       if (done) {

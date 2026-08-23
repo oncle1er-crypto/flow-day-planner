@@ -29,11 +29,7 @@ export default defineConfig({
         workbox: {
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
           navigateFallback: "/",
-          navigateFallbackDenylist: [
-            /^\/api\//,
-            /^\/~oauth/,
-            /^\/sw-push\.js$/,
-          ],
+          navigateFallbackDenylist: [/^\/api\//, /^\/~oauth/, /^\/sw-push\.js$/],
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,

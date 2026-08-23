@@ -12,7 +12,10 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       { title: "Nouveau mot de passe — Flow Day Planner" },
-      { name: "description", content: "Définissez un nouveau mot de passe pour votre compte Flow Day Planner." },
+      {
+        name: "description",
+        content: "Définissez un nouveau mot de passe pour votre compte Flow Day Planner.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -91,8 +94,8 @@ function ResetPasswordPage() {
           ) : !hasSession ? (
             <div className="space-y-4 text-center">
               <p className="text-sm text-muted-foreground">
-                Ce lien de réinitialisation est invalide ou expiré. Demandez-en un nouveau depuis la page de
-                connexion.
+                Ce lien de réinitialisation est invalide ou expiré. Demandez-en un nouveau depuis la
+                page de connexion.
               </p>
               <Button className="w-full" onClick={() => navigate({ to: "/auth" })}>
                 Retour à la connexion
@@ -102,14 +105,36 @@ function ResetPasswordPage() {
             <form onSubmit={submit} className="space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor="pwd">Nouveau mot de passe</Label>
-                <Input id="pwd" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input
+                  id="pwd"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="pwd2">Confirmer</Label>
-                <Input id="pwd2" type="password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+                <Input
+                  id="pwd2"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                />
               </div>
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" disabled={saving} className="w-full h-11 bg-gradient-primary shadow-glow">
+              {error && (
+                <p role="alert" className="text-sm text-destructive">
+                  {error}
+                </p>
+              )}
+              <Button
+                type="submit"
+                disabled={saving}
+                className="w-full h-11 bg-gradient-primary shadow-glow"
+              >
                 {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Enregistrer
               </Button>

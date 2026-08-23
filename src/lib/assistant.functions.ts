@@ -35,8 +35,8 @@ export const askAssistant = createServerFn({ method: "POST" })
       data.mode === "parse_tasks"
         ? `Tu es un assistant qui extrait des tâches d'un texte en français. Renvoie STRICTEMENT un JSON {"tasks":[{"title":"...","description":"...","priority":"low|normal|high|urgent","due_date":"YYYY-MM-DD"|null,"due_time":"HH:MM"|null}]}. Date du jour: ${today}. Pas de markdown, pas d'explication, juste le JSON.`
         : data.mode === "plan_day"
-        ? `Tu es un coach de productivité bienveillant. Donne en français un plan concis pour la journée basé sur les tâches existantes. Maximum 5 puces courtes. Pas de JSON.`
-        : `Tu es un coach de productivité. Fais un court bilan motivant en français basé sur les tâches. Maximum 4 phrases.`;
+          ? `Tu es un coach de productivité bienveillant. Donne en français un plan concis pour la journée basé sur les tâches existantes. Maximum 5 puces courtes. Pas de JSON.`
+          : `Tu es un coach de productivité. Fais un court bilan motivant en français basé sur les tâches. Maximum 4 phrases.`;
 
     const userMsg =
       data.mode === "parse_tasks"
@@ -106,7 +106,10 @@ export const createTasksBatch = createServerFn({ method: "POST" })
       due_date: t.due_date ?? null,
       due_time: t.due_time ?? null,
     }));
-    const { data: inserted, error } = await context.supabase.from("tasks").insert(rows).select("id");
+    const { data: inserted, error } = await context.supabase
+      .from("tasks")
+      .insert(rows)
+      .select("id");
     if (error) throw new Error(error.message);
     return { count: inserted?.length ?? 0 };
   });

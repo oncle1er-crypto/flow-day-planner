@@ -4,7 +4,15 @@ import { Bell, User, CloudOff } from "lucide-react";
 import { useUnreadCount } from "@/hooks/use-notifications";
 import { useOnlineStatus, usePendingSyncCount } from "@/hooks/use-online-status";
 
-export function AppHeader({ title, subtitle, action }: { title?: string; subtitle?: string; action?: ReactNode }) {
+export function AppHeader({
+  title,
+  subtitle,
+  action,
+}: {
+  title?: string;
+  subtitle?: string;
+  action?: ReactNode;
+}) {
   const unread = useUnreadCount();
   const online = useOnlineStatus();
   const pending = usePendingSyncCount();
@@ -12,7 +20,11 @@ export function AppHeader({ title, subtitle, action }: { title?: string; subtitl
     <header className="sticky top-0 z-30 glass border-b border-border/40">
       <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          {subtitle && <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{subtitle}</p>}
+          {subtitle && (
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              {subtitle}
+            </p>
+          )}
           {title && <h1 className="font-display text-2xl font-semibold truncate">{title}</h1>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -20,7 +32,9 @@ export function AppHeader({ title, subtitle, action }: { title?: string; subtitl
           {(!online || pending > 0) && (
             <div
               className="flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-500 px-2.5 h-7 text-xs font-medium"
-              title={online ? "Synchronisation en attente" : "Hors-ligne — modifications mises en file"}
+              title={
+                online ? "Synchronisation en attente" : "Hors-ligne — modifications mises en file"
+              }
             >
               <CloudOff className="h-3.5 w-3.5" />
               {pending > 0 ? pending : "Hors-ligne"}

@@ -9,7 +9,8 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: async () => {
         const entries = [{ path: "/auth", changefreq: "monthly", priority: "0.8" }];
         const urls = entries.map(
-          (e) => `  <url><loc>${BASE_URL}${e.path}</loc><changefreq>${e.changefreq}</changefreq><priority>${e.priority}</priority></url>`,
+          (e) =>
+            `  <url><loc>${BASE_URL}${e.path}</loc><changefreq>${e.changefreq}</changefreq><priority>${e.priority}</priority></url>`,
         );
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
@@ -17,7 +18,9 @@ export const Route = createFileRoute("/sitemap.xml")({
           ...urls,
           `</urlset>`,
         ].join("\n");
-        return new Response(xml, { headers: { "Content-Type": "application/xml", "Cache-Control": "public, max-age=3600" } });
+        return new Response(xml, {
+          headers: { "Content-Type": "application/xml", "Cache-Control": "public, max-age=3600" },
+        });
       },
     },
   },

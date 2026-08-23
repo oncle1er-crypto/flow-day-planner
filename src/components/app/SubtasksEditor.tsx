@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useSubtasks, useCreateSubtask, useToggleSubtask, useDeleteSubtask } from "@/hooks/use-subtasks";
+import {
+  useSubtasks,
+  useCreateSubtask,
+  useToggleSubtask,
+  useDeleteSubtask,
+} from "@/hooks/use-subtasks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check, Plus, X } from "lucide-react";
@@ -31,7 +36,10 @@ export function SubtasksEditor({ taskId }: { taskId: string }) {
       </div>
       <div className="space-y-1.5 max-h-44 overflow-auto pr-1">
         {items.map((s) => (
-          <div key={s.id} className="flex items-center gap-2 rounded-lg bg-secondary/40 px-2 py-1.5">
+          <div
+            key={s.id}
+            className="flex items-center gap-2 rounded-lg bg-secondary/40 px-2 py-1.5"
+          >
             <button
               type="button"
               onClick={() => toggle.mutate({ id: s.id, taskId, completed: !s.is_done })}
@@ -42,7 +50,12 @@ export function SubtasksEditor({ taskId }: { taskId: string }) {
             >
               {s.is_done && <Check className="h-3 w-3" strokeWidth={3} />}
             </button>
-            <span className={cn("flex-1 text-sm truncate", s.is_done && "line-through text-muted-foreground")}>
+            <span
+              className={cn(
+                "flex-1 text-sm truncate",
+                s.is_done && "line-through text-muted-foreground",
+              )}
+            >
               {s.title}
             </span>
             <button
@@ -69,7 +82,14 @@ export function SubtasksEditor({ taskId }: { taskId: string }) {
           placeholder="Ajouter une sous-tâche"
           className="h-9"
         />
-        <Button type="button" size="icon" variant="secondary" onClick={add} disabled={!draft.trim()} className="h-9 w-9 shrink-0">
+        <Button
+          type="button"
+          size="icon"
+          variant="secondary"
+          onClick={add}
+          disabled={!draft.trim()}
+          className="h-9 w-9 shrink-0"
+        >
           <Plus className="h-4 w-4" />
         </Button>
       </div>

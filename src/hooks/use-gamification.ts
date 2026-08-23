@@ -32,7 +32,10 @@ export function useGamification() {
     queryFn: async (): Promise<Stats> => {
       const [tasksRes, focusRes, habitLogsRes, goalsRes] = await Promise.all([
         supabase.from("tasks").select("id", { count: "exact", head: true }).eq("status", "done"),
-        supabase.from("focus_sessions").select("actual_seconds,kind,completed").eq("completed", true),
+        supabase
+          .from("focus_sessions")
+          .select("actual_seconds,kind,completed")
+          .eq("completed", true),
         supabase.from("habit_logs").select("log_date"),
         supabase.from("goals").select("id", { count: "exact", head: true }).eq("status", "done"),
       ]);
@@ -53,7 +56,9 @@ export function useGamification() {
   const unlockedQuery = useQuery({
     queryKey: ["gamification", "unlocked"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("user_achievements").select("achievement_key,unlocked_at");
+      const { data, error } = await supabase
+        .from("user_achievements")
+        .select("achievement_key,unlocked_at");
       if (error) throw error;
       return data ?? [];
     },
@@ -68,7 +73,9 @@ export function useGamification() {
     const unlocked = unlockedQuery.data;
     if (!stats || !unlocked) return;
     const known = new Set(unlocked.map((u) => u.achievement_key));
-    const toUnlock = ACHIEVEMENTS.filter((a) => !known.has(a.key) && a.unlocked(stats, level.level));
+    const toUnlock = ACHIEVEMENTS.filter(
+      (a) => !known.has(a.key) && a.unlocked(stats, level.level),
+    );
     if (!toUnlock.length) return;
     (async () => {
       try {

@@ -11,7 +11,6 @@ function isDuplicate(err: { code?: string } | null): boolean {
   return err?.code === "23505";
 }
 
-
 async function createOccurrence(
   supabase: any,
   source: RecurringTaskSource,
@@ -53,7 +52,11 @@ export const generateNextOccurrence = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ taskId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: task, error } = await supabase.from("tasks").select(SELECT).eq("id", data.taskId).maybeSingle();
+    const { data: task, error } = await supabase
+      .from("tasks")
+      .select(SELECT)
+      .eq("id", data.taskId)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     if (!task) return { created: null as string | null };
     const created = await createOccurrence(supabase, task as unknown as RecurringTaskSource);

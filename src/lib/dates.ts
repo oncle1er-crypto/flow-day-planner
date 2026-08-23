@@ -1,7 +1,34 @@
-import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, isPast, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek, addDays, isSameDay } from "date-fns";
+import {
+  format,
+  formatDistanceToNow,
+  isToday,
+  isTomorrow,
+  isYesterday,
+  isPast,
+  parseISO,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  isSameDay,
+} from "date-fns";
 import { fr } from "date-fns/locale";
 
-export { format, isToday, isTomorrow, isYesterday, isPast, startOfDay, endOfDay, startOfWeek, endOfWeek, addDays, isSameDay, parseISO };
+export {
+  format,
+  isToday,
+  isTomorrow,
+  isYesterday,
+  isPast,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  isSameDay,
+  parseISO,
+};
 
 export function greetingForNow(name?: string | null) {
   const h = new Date().getHours();

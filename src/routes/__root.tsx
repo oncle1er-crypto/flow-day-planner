@@ -92,15 +92,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#15171f" },
       { title: "Flow Day Planner — Organisez vos journées" },
-      { name: "description", content: "App intelligente de gestion de tâches, rappels, priorités, habitudes et objectifs. Pensée mobile-first." },
+      {
+        name: "description",
+        content:
+          "App intelligente de gestion de tâches, rappels, priorités, habitudes et objectifs. Pensée mobile-first.",
+      },
       { property: "og:title", content: "Flow Day Planner — Organisez vos journées" },
-      { property: "og:description", content: "App intelligente de gestion de tâches, rappels, priorités, habitudes et objectifs. Pensée mobile-first." },
+      {
+        property: "og:description",
+        content:
+          "App intelligente de gestion de tâches, rappels, priorités, habitudes et objectifs. Pensée mobile-first.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Flow Day Planner — Organisez vos journées" },
-      { name: "twitter:description", content: "App intelligente de gestion de tâches, rappels, priorités, habitudes et objectifs. Pensée mobile-first." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bced7344-0f4f-4903-b733-7836bc94bf6e/id-preview-1c729746--c289329e-390d-43ab-94e5-19d5c29794e8.lovable.app-1781981345530.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bced7344-0f4f-4903-b733-7836bc94bf6e/id-preview-1c729746--c289329e-390d-43ab-94e5-19d5c29794e8.lovable.app-1781981345530.png" },
+      {
+        name: "twitter:description",
+        content:
+          "App intelligente de gestion de tâches, rappels, priorités, habitudes et objectifs. Pensée mobile-first.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bced7344-0f4f-4903-b733-7836bc94bf6e/id-preview-1c729746--c289329e-390d-43ab-94e5-19d5c29794e8.lovable.app-1781981345530.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bced7344-0f4f-4903-b733-7836bc94bf6e/id-preview-1c729746--c289329e-390d-43ab-94e5-19d5c29794e8.lovable.app-1781981345530.png",
+      },
     ],
     links: [
       {

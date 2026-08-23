@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -70,17 +77,31 @@ export function GoalFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">{editing ? "Modifier l'objectif" : "Nouvel objectif"}</DialogTitle>
+          <DialogTitle className="font-display">
+            {editing ? "Modifier l'objectif" : "Nouvel objectif"}
+          </DialogTitle>
           <DialogDescription>Donnez une direction claire à votre énergie.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="gtitle">Titre</Label>
-            <Input id="gtitle" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex : Courir un semi-marathon" autoFocus />
+            <Input
+              id="gtitle"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ex : Courir un semi-marathon"
+              autoFocus
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="gdesc">Description</Label>
-            <Textarea id="gdesc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Pourquoi cet objectif compte ?" />
+            <Textarea
+              id="gdesc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Pourquoi cet objectif compte ?"
+            />
           </div>
           <div className="space-y-2">
             <Label>Horizon</Label>
@@ -92,7 +113,9 @@ export function GoalFormDialog({
                   onClick={() => setType(t)}
                   className={cn(
                     "rounded-lg border p-2.5 text-sm font-medium transition",
-                    type === t ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary/40 text-muted-foreground",
+                    type === t
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-secondary/40 text-muted-foreground",
                   )}
                 >
                   {GOAL_TYPE_LABEL[t]}
@@ -110,7 +133,9 @@ export function GoalFormDialog({
                   onClick={() => setStatus(s)}
                   className={cn(
                     "rounded-lg border p-2 text-xs font-medium transition",
-                    status === s ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary/40 text-muted-foreground",
+                    status === s
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-secondary/40 text-muted-foreground",
                   )}
                 >
                   {GOAL_STATUS_LABEL[s]}
@@ -123,11 +148,22 @@ export function GoalFormDialog({
               <Label>Progression</Label>
               <span className="text-sm font-semibold tabular-nums">{progress}%</span>
             </div>
-            <Slider value={[progress]} onValueChange={(v) => setProgress(v[0])} min={0} max={100} step={5} />
+            <Slider
+              value={[progress]}
+              onValueChange={(v) => setProgress(v[0])}
+              min={0}
+              max={100}
+              step={5}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="gdate">Échéance (optionnel)</Label>
-            <Input id="gdate" type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+            <Input
+              id="gdate"
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+            />
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
@@ -145,7 +181,9 @@ export function GoalFormDialog({
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
           <Button onClick={save} disabled={!title.trim() || create.isPending || update.isPending}>
             {editing ? "Enregistrer" : "Créer"}
           </Button>

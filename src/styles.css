@@ -111,14 +111,20 @@
 }
 
 /* Force dark theme app-wide for Deep Focus aesthetic */
-.dark { color-scheme: dark; }
+.dark {
+  color-scheme: dark;
+}
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
 
-  html, body, #root { height: 100%; }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
 
   body {
     background-color: var(--color-background);
@@ -131,20 +137,40 @@
     background-attachment: fixed;
   }
 
-  .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 
   /* Hide scrollbar on iOS-style scrollers */
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @layer utilities {
-  .bg-gradient-primary { background-image: var(--gradient-primary); }
-  .bg-gradient-card { background-image: var(--gradient-card); }
-  .bg-gradient-hero { background-image: var(--gradient-hero); }
-  .shadow-glow { box-shadow: var(--shadow-glow); }
-  .shadow-soft { box-shadow: var(--shadow-soft); }
-  .shadow-card { box-shadow: var(--shadow-card); }
+  .bg-gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+  .bg-gradient-card {
+    background-image: var(--gradient-card);
+  }
+  .bg-gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
   .glass {
     background: oklch(0.22 0.025 260 / 0.72);
     backdrop-filter: blur(14px) saturate(140%);

@@ -13,7 +13,13 @@ import type { Priority } from "@/lib/task-utils";
 
 export const Route = createFileRoute("/_authenticated/assistant")({ component: AssistantPage });
 
-type Parsed = { title: string; description?: string; priority?: Priority; due_date?: string | null; due_time?: string | null };
+type Parsed = {
+  title: string;
+  description?: string;
+  priority?: Priority;
+  due_date?: string | null;
+  due_time?: string | null;
+};
 
 function AssistantPage() {
   const ask = useServerFn(askAssistant);
@@ -31,7 +37,9 @@ function AssistantPage() {
     setParsed(null);
     setMessage(null);
     try {
-      const res = await ask({ data: { prompt: text || "Aide-moi à organiser ma journée", mode: next } });
+      const res = await ask({
+        data: { prompt: text || "Aide-moi à organiser ma journée", mode: next },
+      });
       if (res.mode === "parse_tasks") setParsed(res.tasks as Parsed[]);
       else setMessage(res.message ?? "");
     } catch (e) {
@@ -47,7 +55,9 @@ function AssistantPage() {
     try {
       const res = await createBatch({ data: { tasks: parsed } });
       qc.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success(`${res.count} tâche${res.count > 1 ? "s" : ""} créée${res.count > 1 ? "s" : ""}`);
+      toast.success(
+        `${res.count} tâche${res.count > 1 ? "s" : ""} créée${res.count > 1 ? "s" : ""}`,
+      );
       setParsed(null);
       setText("");
     } catch (e) {
@@ -67,7 +77,9 @@ function AssistantPage() {
             </div>
             <div>
               <h2 className="font-display font-semibold">Décrivez votre journée</h2>
-              <p className="text-sm text-muted-foreground">Je transforme votre texte en tâches structurées.</p>
+              <p className="text-sm text-muted-foreground">
+                Je transforme votre texte en tâches structurées.
+              </p>
             </div>
           </div>
           <Textarea
@@ -77,13 +89,37 @@ function AssistantPage() {
             rows={4}
           />
           <div className="grid grid-cols-3 gap-2 mt-3">
-            <Button variant="outline" size="sm" onClick={() => { setMode("parse_tasks"); run("parse_tasks"); }} disabled={loading || !text.trim()}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMode("parse_tasks");
+                run("parse_tasks");
+              }}
+              disabled={loading || !text.trim()}
+            >
               <ListPlus className="h-4 w-4 mr-1.5" /> Extraire
             </Button>
-            <Button variant="outline" size="sm" onClick={() => { setMode("plan_day"); run("plan_day"); }} disabled={loading}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMode("plan_day");
+                run("plan_day");
+              }}
+              disabled={loading}
+            >
               <Calendar className="h-4 w-4 mr-1.5" /> Plan du jour
             </Button>
-            <Button variant="outline" size="sm" onClick={() => { setMode("summary"); run("summary"); }} disabled={loading}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMode("summary");
+                run("summary");
+              }}
+              disabled={loading}
+            >
               <Wand2 className="h-4 w-4 mr-1.5" /> Bilan
             </Button>
           </div>
@@ -110,9 +146,16 @@ function AssistantPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-medium">{t.title}</p>
-                      {t.description && <p className="text-sm text-muted-foreground mt-0.5">{t.description}</p>}
+                      {t.description && (
+                        <p className="text-sm text-muted-foreground mt-0.5">{t.description}</p>
+                      )}
                       <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
-                        {t.due_date && <span>📅 {t.due_date}{t.due_time ? ` · ${t.due_time}` : ""}</span>}
+                        {t.due_date && (
+                          <span>
+                            📅 {t.due_date}
+                            {t.due_time ? ` · ${t.due_time}` : ""}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {t.priority && <PriorityBadge priority={t.priority} />}
@@ -120,14 +163,20 @@ function AssistantPage() {
                 </div>
               ))}
             </div>
-            <Button className="w-full bg-gradient-primary shadow-glow" onClick={handleCreate} disabled={loading}>
+            <Button
+              className="w-full bg-gradient-primary shadow-glow"
+              onClick={handleCreate}
+              disabled={loading}
+            >
               <ListPlus className="h-4 w-4 mr-2" /> Créer ces tâches
             </Button>
           </div>
         )}
 
         {parsed && parsed.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground py-4">Aucune tâche détectée. Reformulez votre texte.</p>
+          <p className="text-center text-sm text-muted-foreground py-4">
+            Aucune tâche détectée. Reformulez votre texte.
+          </p>
         )}
       </div>
     </AppShell>

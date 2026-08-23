@@ -27,7 +27,9 @@ export function subscribeQueue(cb: () => void) {
   };
 }
 
-export async function enqueueOp(op: Omit<SyncOp, "id" | "createdAt"> & { id?: string }): Promise<SyncOp> {
+export async function enqueueOp(
+  op: Omit<SyncOp, "id" | "createdAt"> & { id?: string },
+): Promise<SyncOp> {
   const full: SyncOp = {
     id: op.id ?? crypto.randomUUID(),
     createdAt: Date.now(),
