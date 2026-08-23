@@ -185,6 +185,21 @@ function wallTimeToUTC(dateStr: string, timeStr: string, tz: string): number | n
   }
 }
 
+function getServerKey(): string | null {
+  const modernKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
+  if (modernKeys) {
+    try {
+      const parsed = JSON.parse(modernKeys) as Record<string, string>;
+      const modern = parsed.default ?? Object.values(parsed)[0];
+      if (modern) return modern;
+    } catch {
+      console.error("SUPABASE_SECRET_KEYS is not valid JSON");
+    }
+  }
+
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+}
+
 // ----- main handler -----
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
@@ -194,9 +209,15 @@ Deno.serve(async (req) => {
     });
   }
 
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const serverKey = getServerKey();
+  const apiKeyHeader = req.headers.get("apikey") ?? "";
   const authHeader = req.headers.get("authorization") ?? "";
-  if (!serviceRoleKey || authHeader !== `Bearer ${serviceRoleKey}`) {
+  const usingModernSecret = serverKey?.startsWith("sb_secret_") ?? false;
+  const authorized = usingModernSecret
+    ? apiKeyHeader === serverKey
+    : Boolean(serverKey) && authHeader === `Bearer ${serverKey}`;
+
+  if (!serverKey || !authorized) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "content-type": "application/json" },
@@ -211,7 +232,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const sb = createClient(supabaseUrl, serviceRoleKey);
+  const sb = createClient(supabaseUrl, serverKey);
 
   const now = new Date();
   const winStart = now.getTime() - 30_000;
