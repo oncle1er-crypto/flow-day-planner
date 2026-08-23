@@ -165,6 +165,11 @@ export const Route = createFileRoute("/api/public/ai-assistant")({
 
         return json({ mode, message: content });
       },
+      GET: async () => methodNotAllowed(),
+      PUT: async () => methodNotAllowed(),
+      PATCH: async () => methodNotAllowed(),
+      DELETE: async () => methodNotAllowed(),
     },
   },
 });
+
