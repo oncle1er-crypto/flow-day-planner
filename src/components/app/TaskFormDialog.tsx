@@ -294,6 +294,7 @@ export function TaskFormDialog({
           )}
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
           <Button onClick={handleSave} disabled={!title.trim() || create.isPending || update.isPending}>
+            {(create.isPending || update.isPending) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {editing ? "Enregistrer" : "Créer"}
           </Button>
         </DialogFooter>
