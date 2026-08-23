@@ -9,9 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { useCategories } from "@/hooks/use-categories";
 import { useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
 import type { Task, Priority, Status } from "@/lib/task-utils";
-import { Trash2, Archive, ArchiveRestore } from "lucide-react";
+import { RECURRENCE_LABEL, type RecurrenceConfig, type RecurrenceType } from "@/lib/recurrence";
+import { Trash2, Archive, ArchiveRestore, Loader2 } from "lucide-react";
 import { todayISO } from "@/lib/dates";
 import { SubtasksEditor } from "./SubtasksEditor";
+
+const DAY_LABELS = ["D", "L", "M", "M", "J", "V", "S"];
 
 export function TaskFormDialog({
   open,
