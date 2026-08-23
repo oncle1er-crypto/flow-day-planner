@@ -1,4 +1,1 @@
 project_id = "sjdhvzjaqarlqcqpkfzd"
-
-[functions.push-reminders]
-verify_jwt = false
