@@ -11,6 +11,7 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 --
 -- The Edge Function verifies x-cron-secret, while its Supabase server key remains
 -- internal to the Edge Function runtime and is never passed through pg_cron.
+-- This migration intentionally keeps application credentials out of the scheduler.
 
 DO $$
 BEGIN
