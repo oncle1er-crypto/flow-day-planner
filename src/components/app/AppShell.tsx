@@ -4,6 +4,7 @@ import { AppHeader } from "./AppHeader";
 import { useGamification } from "@/hooks/use-gamification";
 import { useScheduledReminders } from "@/hooks/use-push-notifications";
 import { useOfflineSync } from "@/hooks/use-online-status";
+import { useRecurrenceCatchup } from "@/hooks/use-recurrence-catchup";
 
 export function AppShell({
   children,
@@ -24,6 +25,8 @@ export function AppShell({
   useScheduledReminders();
   // Offline queue: auto-flush when connection returns
   useOfflineSync();
+  // Recurring tasks: make sure due series have their next occurrence
+  useRecurrenceCatchup();
   return (
     <div className="min-h-screen flex flex-col pb-24">
       {!hideHeader && <AppHeader title={title} subtitle={subtitle} action={action} />}

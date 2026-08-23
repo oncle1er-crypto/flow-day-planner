@@ -252,6 +252,7 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          dedupe_key: string | null
           delivered_at: string | null
           id: string
           is_read: boolean
@@ -264,6 +265,7 @@ export type Database = {
         Insert: {
           body?: string | null
           created_at?: string
+          dedupe_key?: string | null
           delivered_at?: string | null
           id?: string
           is_read?: boolean
@@ -276,6 +278,7 @@ export type Database = {
         Update: {
           body?: string | null
           created_at?: string
+          dedupe_key?: string | null
           delivered_at?: string | null
           id?: string
           is_read?: boolean
@@ -445,10 +448,12 @@ export type Database = {
           id: string
           is_archived: boolean
           notes: string | null
+          occurrence_index: number
           priority: Database["public"]["Enums"]["task_priority"]
           recurrence: Database["public"]["Enums"]["recurrence_type"]
           recurrence_config: Json | null
           recurrence_end_date: string | null
+          recurrence_parent_id: string | null
           reminder_at: string | null
           reminder_enabled: boolean
           status: Database["public"]["Enums"]["task_status"]
@@ -469,10 +474,12 @@ export type Database = {
           id?: string
           is_archived?: boolean
           notes?: string | null
+          occurrence_index?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           recurrence?: Database["public"]["Enums"]["recurrence_type"]
           recurrence_config?: Json | null
           recurrence_end_date?: string | null
+          recurrence_parent_id?: string | null
           reminder_at?: string | null
           reminder_enabled?: boolean
           status?: Database["public"]["Enums"]["task_status"]
@@ -493,10 +500,12 @@ export type Database = {
           id?: string
           is_archived?: boolean
           notes?: string | null
+          occurrence_index?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           recurrence?: Database["public"]["Enums"]["recurrence_type"]
           recurrence_config?: Json | null
           recurrence_end_date?: string | null
+          recurrence_parent_id?: string | null
           reminder_at?: string | null
           reminder_enabled?: boolean
           status?: Database["public"]["Enums"]["task_status"]
@@ -511,6 +520,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_recurrence_parent_id_fkey"
+            columns: ["recurrence_parent_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]

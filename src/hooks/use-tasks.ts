@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Task, TaskInsert, TaskUpdate, Status } from "@/lib/task-utils";
 import { toast } from "sonner";
 import { enqueueOp, isOnline } from "@/lib/sync-queue";
+import { generateNextOccurrence } from "@/lib/recurrence.functions";
 
 export function useTasks(filter?: { dueOn?: string; range?: [string, string]; status?: Status[]; overdue?: boolean }) {
   return useQuery<Task[]>({
@@ -82,6 +83,16 @@ export function useToggleTask() {
       }
       const { error } = await supabase.from("tasks").update(patch).eq("id", id);
       if (error) throw error;
+
+      // Recurring task completed → create the next occurrence (idempotent server-side).
+      if (done) {
+        try {
+          const res = await generateNextOccurrence({ data: { taskId: id } });
+          if (res?.created) toast.success("Prochaine occurrence planifiée");
+        } catch (err) {
+          console.error("[recurrence] next occurrence failed", err);
+        }
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tasks"] }),
   });

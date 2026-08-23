@@ -6,11 +6,12 @@ import { Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fmtRelative } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/notifications")({ component: NotifPage });
 
 function NotifPage() {
-  const { data: items = [] } = useNotifications();
+  const { data: items = [], isLoading, isError, error, refetch } = useNotifications();
   const markRead = useMarkRead();
   const markAll = useMarkAllRead();
   const unread = items.filter((n) => !n.is_read).length;
@@ -28,7 +29,26 @@ function NotifPage() {
       }
     >
       <div className="pt-4 space-y-2">
-        {items.length === 0 ? (
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-border bg-card/60 p-4">
+              <div className="flex items-start gap-3">
+                <Skeleton className="h-9 w-9 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              </div>
+            </div>
+          ))
+        ) : isError ? (
+          <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-center space-y-3">
+            <p className="text-sm text-destructive" role="alert">
+              {error instanceof Error ? error.message : "Impossible de charger les notifications."}
+            </p>
+            <Button size="sm" variant="ghost" onClick={() => refetch()}>Réessayer</Button>
+          </div>
+        ) : items.length === 0 ? (
           <EmptyState icon={Bell} title="Aucune notification" description="Vos rappels apparaîtront ici." />
         ) : (
           items.map((n) => (
