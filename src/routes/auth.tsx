@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,17 +11,19 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Connexion — Flow Day Planner" },
-      {
-        name: "description",
-        content:
-          "Connectez-vous à Flow Day Planner pour organiser vos tâches, habitudes et objectifs.",
-      },
+      { title: "Connexion — Smart Daily Tasks" },
+      { name: "description", content: "Connectez-vous pour organiser vos tâches, habitudes et objectifs." },
     ],
   }),
-  beforeLoad: async () => {
+  validateSearch: (s: Record<string, unknown>): { next?: string } =>
+    typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//")
+      ? { next: s.next }
+      : {},
+  beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/today" });
+    if (!data.user) return;
+    if (search.next) throw redirect({ href: search.next });
+    throw redirect({ to: "/today" });
   },
   component: AuthPage,
 });
@@ -29,7 +31,8 @@ export const Route = createFileRoute("/auth")({
 type Mode = "signin" | "signup" | "forgot";
 
 function AuthPage() {
-  const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const returnTo = next ?? "/today";
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +66,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/today`,
+            emailRedirectTo: `${window.location.origin}${returnTo}`,
             data: { full_name: name },
           },
         });
@@ -73,7 +76,7 @@ function AuthPage() {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
       }
-      navigate({ to: "/today" });
+      window.location.href = returnTo;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Une erreur est survenue.";
       setError(msg);
@@ -90,7 +93,7 @@ function AuthPage() {
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-primary shadow-glow mb-4">
             <Sparkles className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="font-display text-3xl font-bold">Flow Day Planner</h1>
+          <h1 className="font-display text-3xl font-bold">Smart Daily Tasks</h1>
           <p className="text-muted-foreground mt-1">Votre journée, organisée intelligemment.</p>
         </div>
 
@@ -116,8 +119,7 @@ function AuthPage() {
             <div className="space-y-4 text-center">
               <MailCheck className="mx-auto h-8 w-8 text-primary" />
               <p className="text-sm text-muted-foreground">
-                Si un compte existe pour{" "}
-                <span className="font-medium text-foreground">{email}</span>, un lien de
+                Si un compte existe pour <span className="font-medium text-foreground">{email}</span>, un lien de
                 réinitialisation vient d'être envoyé. Vérifiez aussi vos spams.
               </p>
               <Button variant="ghost" className="w-full" onClick={() => switchMode("signin")}>
@@ -128,65 +130,29 @@ function AuthPage() {
             <form onSubmit={handleEmail} className="space-y-3">
               {mode === "forgot" && (
                 <p className="text-sm text-muted-foreground">
-                  Entrez votre email, nous vous enverrons un lien pour définir un nouveau mot de
-                  passe.
+                  Entrez votre email, nous vous enverrons un lien pour définir un nouveau mot de passe.
                 </p>
               )}
               {mode === "signup" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Nom complet</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Jean Dupont"
-                  />
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" />
                 </div>
               )}
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vous@exemple.com"
-                />
+                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" />
               </div>
               {mode !== "forgot" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
               )}
-              {error && (
-                <p role="alert" className="text-sm text-destructive">
-                  {error}
-                </p>
-              )}
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full h-11 bg-gradient-primary shadow-glow"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                )}
-                {mode === "forgot"
-                  ? "Envoyer le lien"
-                  : mode === "signup"
-                    ? "Créer mon compte"
-                    : "Se connecter"}
+              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" disabled={loading} className="w-full h-11 bg-gradient-primary shadow-glow">
+                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                {mode === "forgot" ? "Envoyer le lien" : mode === "signup" ? "Créer mon compte" : "Se connecter"}
               </Button>
               <button
                 type="button"
