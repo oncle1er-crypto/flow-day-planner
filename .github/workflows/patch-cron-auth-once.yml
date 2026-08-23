@@ -1,0 +1,72 @@
+name: One-time cron auth patch
+
+on:
+  push:
+    branches:
+      - "chatgpt/finish-flow-day-planner"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[skip-cron-auth-patch]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/finish-flow-day-planner
+      - name: Patch Edge Function auth
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('supabase/functions/push-reminders/index.ts')
+          s = p.read_text()
+          old = '''  const serverKey = getServerKey();
+  const apiKeyHeader = req.headers.get("apikey") ?? "";
+  const authHeader = req.headers.get("authorization") ?? "";
+  const usingModernSecret = serverKey?.startsWith("sb_secret_") ?? false;
+  const authorized = usingModernSecret
+    ? apiKeyHeader === serverKey
+    : Boolean(serverKey) && authHeader === `Bearer ${serverKey}`;
+
+  if (!serverKey || !authorized) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+'''
+          new = '''  const cronSecret = Deno.env.get("PUSH_REMINDERS_CRON_SECRET");
+  const presentedCronSecret = req.headers.get("x-cron-secret") ?? "";
+  if (!cronSecret || presentedCronSecret !== cronSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const serverKey = getServerKey();
+  if (!serverKey) {
+    return new Response(JSON.stringify({ error: "Server key missing" }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+'''
+          if old not in s:
+              raise SystemExit('Expected auth block not found')
+          p.write_text(s.replace(old, new))
+          PY
+      - name: Commit patch
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/functions/push-reminders/index.ts
+          git commit -m "security: use dedicated cron secret for push reminders [skip-cron-auth-patch]"
+          git push origin HEAD:chatgpt/finish-flow-day-planner
