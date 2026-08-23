@@ -15,12 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      # Public Supabase project identifiers used only for anonymous smoke tests.
+      # Public Supabase project identifiers used by the app under test.
       # Never place service_role/secret keys in this workflow.
       VITE_SUPABASE_URL: https://sjdhvzjaqarlqcqpkfzd.supabase.co
       SUPABASE_URL: https://sjdhvzjaqarlqcqpkfzd.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqZGh2emphcWFybHFjcXBrZnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzk5OTAsImV4cCI6MjA5NzUxNTk5MH0.axZ9NV9_3WzO6HW0MOAOSZjKydjyoHCWWxQyMlA1sGM
       SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqZGh2emphcWFybHFjcXBrZnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzk5OTAsImV4cCI6MjA5NzUxNTk5MH0.axZ9NV9_3WzO6HW0MOAOSZjKydjyoHCWWxQyMlA1sGM
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -47,8 +49,24 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Require connected E2E credentials
+        shell: bash
+        run: |
+          if [[ -z "$E2E_EMAIL" || -z "$E2E_PASSWORD" ]]; then
+            echo "::error::GitHub secrets E2E_EMAIL and E2E_PASSWORD are required."
+            exit 1
+          fi
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Browser smoke tests
+      - name: Browser regression tests
         run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
