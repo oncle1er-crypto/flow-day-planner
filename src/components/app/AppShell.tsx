@@ -4,6 +4,7 @@ import { AppHeader } from "./AppHeader";
 import { useGamification } from "@/hooks/use-gamification";
 import { useScheduledReminders } from "@/hooks/use-push-notifications";
 import { useOfflineSync } from "@/hooks/use-online-status";
+import { useRecurrenceCatchup } from "@/hooks/use-recurrence-catchup";
 
 export function AppShell({
   children,
