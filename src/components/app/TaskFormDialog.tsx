@@ -203,7 +203,66 @@ export function TaskFormDialog({
             </div>
             <Switch checked={reminder} onCheckedChange={setReminder} />
           </div>
+
+          <div className="space-y-3 rounded-xl border border-border bg-secondary/30 p-4">
+            <div className="space-y-1.5">
+              <Label>Répétition</Label>
+              <Select value={recurrence} onValueChange={(v) => setRecurrence(v as RecurrenceType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(RECURRENCE_LABEL) as RecurrenceType[]).map((k) => (
+                    <SelectItem key={k} value={k}>{RECURRENCE_LABEL[k]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {recurrence === "custom" && (
+              <div className="space-y-1.5">
+                <Label>Jours de la semaine</Label>
+                <div className="flex gap-1.5">
+                  {DAY_LABELS.map((lbl, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => toggleDay(idx)}
+                      aria-pressed={recDays.includes(idx)}
+                      className={`h-9 w-9 rounded-lg text-sm font-medium transition ${
+                        recDays.includes(idx)
+                          ? "bg-gradient-primary text-primary-foreground"
+                          : "bg-card text-muted-foreground border border-border"
+                      }`}
+                    >
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {recurrence !== "none" && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="rec-end">Fin (optionnel)</Label>
+                  <Input id="rec-end" type="date" value={recEnd} onChange={(e) => setRecEnd(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="rec-max">Nb max (optionnel)</Label>
+                  <Input
+                    id="rec-max"
+                    type="number"
+                    min={1}
+                    value={recMax}
+                    onChange={(e) => setRecMax(e.target.value)}
+                    placeholder="Illimité"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {editing && task && <SubtasksEditor taskId={task.id} />}
+          {error && (
+            <p role="alert" className="text-sm text-destructive">{error}</p>
+          )}
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
           {editing && task && (
