@@ -82,7 +82,8 @@ export async function registerAppSw() {
     const registration = await navigator.serviceWorker.register(APP_SW_URL, { scope: "/" });
     const ready = await navigator.serviceWorker.ready;
 
-    const worker = ready.active ?? registration.active ?? registration.waiting ?? registration.installing;
+    const worker =
+      ready.active ?? registration.active ?? registration.waiting ?? registration.installing;
     worker?.postMessage({ type: "CACHE_URLS", urls: loadedSameOriginResources() });
 
     const onMessage = (event: MessageEvent) => {
