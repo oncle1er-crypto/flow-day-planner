@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { buildNextOccurrence, type RecurringTaskSource } from "@/lib/recurrence";
 
@@ -12,7 +14,7 @@ function isDuplicate(err: { code?: string } | null): boolean {
 }
 
 async function createOccurrence(
-  supabase: any,
+  supabase: SupabaseClient<Database>,
   source: RecurringTaskSource,
 ): Promise<string | null> {
   const row = buildNextOccurrence(source);
@@ -26,7 +28,6 @@ async function createOccurrence(
   const newId = data?.id as string | undefined;
   if (!newId) return null;
 
-  // Carry over the subtask checklist (reset to "not done").
   const { data: subs } = await supabase
     .from("subtasks")
     .select("title,position")
@@ -46,7 +47,6 @@ async function createOccurrence(
   return newId;
 }
 
-/** Called right after a recurring task is completed. Idempotent. */
 export const generateNextOccurrence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ taskId: z.string().uuid() }).parse(input))
@@ -63,11 +63,6 @@ export const generateNextOccurrence = createServerFn({ method: "POST" })
     return { created };
   });
 
-/**
- * Catch-up pass: for every recurring series whose latest occurrence is due
- * today or in the past, make sure the next occurrence exists. Idempotent
- * thanks to the unique index on (user_id, series root, due_date).
- */
 export const ensureRecurringOccurrences = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -84,7 +79,6 @@ export const ensureRecurringOccurrences = createServerFn({ method: "POST" })
       .limit(200);
     if (error) throw new Error(error.message);
 
-    // Keep only the most recent occurrence of each series.
     const latestBySeries = new Map<string, RecurringTaskSource>();
     for (const t of (tasks ?? []) as unknown as RecurringTaskSource[]) {
       const root = t.recurrence_parent_id ?? t.id;
