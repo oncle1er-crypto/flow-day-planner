@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/e2e/**",
     "test:e2e": "playwright test",
     "format": "prettier --write ."
   },
