@@ -36,12 +36,14 @@ jobs:
           if [ ! -d ios ]; then npx cap add ios; fi
           npx cap sync
 
-      - name: Enable exact Android reminders and boot restore
+      - name: Enable exact Android reminders and audible channel resource
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('android/app/src/main/AndroidManifest.xml')
-          text = p.read_text()
+          import math, struct, wave
+
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          text = manifest.read_text()
           marker = '<application'
           permissions = [
               '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
@@ -51,7 +53,22 @@ jobs:
           missing = [x for x in permissions if x not in text]
           if missing:
               text = text.replace(marker, '\n'.join(missing) + '\n\n    ' + marker, 1)
-              p.write_text(text)
+              manifest.write_text(text)
+
+          raw = Path('android/app/src/main/res/raw')
+          raw.mkdir(parents=True, exist_ok=True)
+          sound = raw / 'flow_day_reminder.wav'
+          rate = 44100
+          duration = 0.55
+          frequency = 880.0
+          with wave.open(str(sound), 'wb') as wav:
+              wav.setnchannels(1)
+              wav.setsampwidth(2)
+              wav.setframerate(rate)
+              for i in range(int(rate * duration)):
+                  envelope = max(0.0, 1.0 - i / (rate * duration))
+                  sample = int(32767 * 0.35 * envelope * math.sin(2 * math.pi * frequency * i / rate))
+                  wav.writeframesraw(struct.pack('<h', sample))
           PY
 
       - name: Commit generated native projects and lockfile
