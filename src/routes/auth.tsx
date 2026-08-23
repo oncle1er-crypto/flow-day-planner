@@ -5,10 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles, CheckCircle2 } from "lucide-react";
+import { Sparkles, CheckCircle2, Loader2, MailCheck } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Connexion — Smart Daily Tasks" },
+      { name: "description", content: "Connectez-vous pour organiser vos tâches, habitudes et objectifs." },
+    ],
+  }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     if (data.user) throw redirect({ to: "/today" });
@@ -16,19 +22,40 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+type Mode = "signin" | "signup" | "forgot";
+
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+
+  const switchMode = (m: Mode) => {
+    setMode(m);
+    setError(null);
+    setSent(false);
+  };
+
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
+      if (mode === "forgot") {
+        const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (err) throw err;
+        setSent(true);
+        toast.success("Email de réinitialisation envoyé");
+        return;
+      }
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { error: err } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -36,15 +63,17 @@ function AuthPage() {
             data: { full_name: name },
           },
         });
-        if (error) throw error;
+        if (err) throw err;
         toast.success("Compte créé. Vérifiez votre email si confirmation requise.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) throw err;
       }
       navigate({ to: "/today" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erreur");
+      const msg = err instanceof Error ? err.message : "Une erreur est survenue.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
