@@ -5,7 +5,6 @@
 //     error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   tanstackStart: {
@@ -18,57 +17,10 @@ export default defineConfig({
   // worker). Pour un déploiement Vercel, définir la variable d'env
   // `NITRO_PRESET=vercel` dans Vercel (cf. VERCEL.md) ou activer le preset
   // uniquement dans un fork dédié.
-  vite: {
-    plugins: [
-      VitePWA({
-        registerType: "autoUpdate",
-        injectRegister: null,
-        filename: "sw.js",
-        devOptions: { enabled: false },
-        manifest: false, // we already ship /manifest.webmanifest
-        workbox: {
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-          navigateFallback: "/",
-          navigateFallbackDenylist: [/^\/api\//, /^\/~oauth/, /^\/sw-push\.js$/],
-          cleanupOutdatedCaches: true,
-          clientsClaim: true,
-          skipWaiting: true,
-          runtimeCaching: [
-            {
-              urlPattern: ({ request, url }) =>
-                request.mode === "navigate" &&
-                !url.pathname.startsWith("/~oauth") &&
-                !url.pathname.startsWith("/api/"),
-              handler: "NetworkFirst",
-              options: {
-                cacheName: "html-nav",
-                networkTimeoutSeconds: 4,
-                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 7 },
-              },
-            },
-            {
-              urlPattern: ({ url, sameOrigin }) =>
-                sameOrigin && /\.(?:js|css|woff2|png|jpg|jpeg|svg|webp|ico)$/.test(url.pathname),
-              handler: "CacheFirst",
-              options: {
-                cacheName: "static-assets",
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              },
-            },
-            {
-              urlPattern: ({ url }) =>
-                url.hostname.endsWith(".supabase.co") && url.pathname.includes("/rest/"),
-              handler: "NetworkFirst",
-              options: {
-                cacheName: "supabase-rest",
-                networkTimeoutSeconds: 4,
-                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
-                cacheableResponse: { statuses: [0, 200] },
-              },
-            },
-          ],
-        },
-      }),
-    ],
-  },
+  //
+  // PWA/offline is implemented by public/sw.js instead of vite-plugin-pwa.
+  // TanStack Start/Nitro emits deployment assets outside a conventional dist
+  // directory, which made Workbox generate an empty precache on Vercel. The
+  // custom worker also guarantees that authenticated Supabase API responses
+  // are never written to the shared browser Cache Storage.
 });
