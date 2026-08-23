@@ -29,3 +29,33 @@ test("PWA manifest exposes the final application identity", async ({ request }) 
   expect(manifest.short_name).toBe("Flow Day");
   expect(manifest.display).toBe("standalone");
 });
+
+test("root service worker registers and contains the background push reminder path", async ({
+  context,
+  page,
+  request,
+}) => {
+  await context.grantPermissions(["notifications"]);
+  await page.goto("/auth");
+
+  const worker = await page.evaluate(async () => {
+    if (!("serviceWorker" in navigator)) return null;
+    const registration = await navigator.serviceWorker.ready;
+    return {
+      scope: registration.scope,
+      scriptURL: registration.active?.scriptURL ?? null,
+      permission: Notification.permission,
+    };
+  });
+
+  expect(worker?.scriptURL).toMatch(/\/sw\.js$/);
+  expect(worker?.permission).toBe("granted");
+
+  const response = await request.get("/sw.js");
+  expect(response.ok()).toBeTruthy();
+  const source = await response.text();
+  expect(source).toContain('addEventListener("push"');
+  expect(source).toContain("showNotification");
+  expect(source).toContain("requireInteraction");
+  expect(source).toContain("vibrate");
+});
