@@ -11,9 +11,19 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useBackgroundPush } from "@/hooks/use-background-push";
+import { useNativeReminders } from "@/hooks/use-native-reminders";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { exportCurrentUserData } from "@/lib/export-user-data";
-import { Bell, BellOff, Check, Download, Loader2, Radio } from "lucide-react";
+import {
+  AlarmClock,
+  Bell,
+  BellOff,
+  Check,
+  Download,
+  Loader2,
+  Radio,
+  Smartphone,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
 
@@ -26,6 +36,7 @@ function SettingsPage() {
   const [exporting, setExporting] = useState(false);
   const { permission, isSupported, isGranted, requestPermission } = usePushNotifications();
   const bg = useBackgroundPush();
+  const native = useNativeReminders();
 
   useEffect(() => {
     if (profile) {
@@ -77,6 +88,7 @@ function SettingsPage() {
       return;
     }
     qc.invalidateQueries({ queryKey: ["settings"] });
+    qc.invalidateQueries({ queryKey: ["tasks-for-reminders"] });
   };
 
   const exportData = async () => {
@@ -232,6 +244,78 @@ function SettingsPage() {
 
           {bg.error && <p className="text-xs text-destructive">{bg.error}</p>}
         </section>
+
+        {native.supported && (
+          <section className="rounded-2xl border border-primary/30 bg-primary/5 p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Smartphone className="h-4 w-4 text-primary" />
+              <h2 className="font-display font-semibold">Rappels locaux de l’application mobile</h2>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Les rappels sont programmés directement par Android/iOS. Ils peuvent donc sonner même
+              si Flow Day Planner est fermé et même sans Internet.
+            </p>
+
+            <div className="grid gap-2 text-xs">
+              <div className="flex items-center justify-between rounded-xl bg-background/60 p-3">
+                <span>Notifications système</span>
+                <span className={native.permission === "granted" ? "text-success" : "text-warning"}>
+                  {native.permission === "granted" ? "Autorisées" : "À autoriser"}
+                </span>
+              </div>
+              {native.platform === "android" && (
+                <div className="flex items-center justify-between rounded-xl bg-background/60 p-3">
+                  <span>Alarmes exactes Android</span>
+                  <span
+                    className={native.exactAlarm === "granted" ? "text-success" : "text-warning"}
+                  >
+                    {native.exactAlarm === "granted" ? "Autorisées" : "À autoriser"}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {native.permission !== "granted" && (
+              <Button
+                className="w-full"
+                onClick={() => native.requestPermission()}
+                disabled={native.busy}
+              >
+                {native.busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Autoriser les rappels locaux
+              </Button>
+            )}
+
+            {native.platform === "android" && native.exactAlarm !== "granted" && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => native.requestExactAlarm()}
+                disabled={native.busy}
+              >
+                <AlarmClock className="h-4 w-4 mr-2" /> Autoriser les alarmes exactes
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={
+                native.busy ||
+                native.permission !== "granted" ||
+                (native.platform === "android" && native.exactAlarm !== "granted")
+              }
+              onClick={async () => {
+                const ok = await native.test();
+                if (ok) toast.success("Test programmé : le rappel doit sonner dans 5 secondes");
+              }}
+            >
+              <Bell className="h-4 w-4 mr-2" /> Tester le rappel sonore dans 5 secondes
+            </Button>
+
+            {native.error && <p className="text-xs text-destructive">{native.error}</p>}
+          </section>
+        )}
 
         <section className="rounded-2xl border border-border bg-card/60 p-5 space-y-3">
           <div>
