@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { todayISO } from "@/lib/dates";
+import { isNativeReminderPlatform, syncNativeReminders } from "@/lib/native-reminders";
 
 type Permission = "default" | "granted" | "denied" | "unsupported";
 
@@ -43,9 +44,9 @@ export function usePushNotifications() {
 }
 
 /**
- * Schedules local notifications while the app is open:
- *  - Per-task reminders based on due_date + due_time + default_reminder_minutes
- *  - Daily summary reminder at user's chosen time
+ * Reminder coordinator:
+ *  - native Capacitor: schedules OS-level local notifications that survive app closure
+ *  - web/PWA: schedules foreground timers while Web Push handles background delivery
  */
 export function useScheduledReminders() {
   const timersRef = useRef<number[]>([]);
@@ -70,7 +71,7 @@ export function useScheduledReminders() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("id,title,due_date,due_time,reminder_enabled,status")
+        .select("id,title,due_date,due_time,reminder_enabled,status,is_archived")
         .gte("due_date", todayISO())
         .neq("status", "done")
         .neq("status", "cancelled")
@@ -85,12 +86,20 @@ export function useScheduledReminders() {
     timersRef.current.forEach((id) => window.clearTimeout(id));
     timersRef.current = [];
 
+    if (isNativeReminderPlatform()) {
+      void syncNativeReminders(tasks ?? [], settings).catch((error) => {
+        console.error("[native-reminders] sync failed", error);
+      });
+      return;
+    }
+
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission !== "granted") return;
     if (!settings?.notifications_enabled) return;
 
     const now = Date.now();
     const leadMs = (settings.default_reminder_minutes ?? 15) * 60_000;
+    const silent = settings.sound_enabled === false;
 
     (tasks ?? []).forEach((t) => {
       if (!t.reminder_enabled || !t.due_date) return;
@@ -100,7 +109,12 @@ export function useScheduledReminders() {
       const delay = fireAt - now;
       if (delay > 0 && delay < 24 * 60 * 60 * 1000) {
         const id = window.setTimeout(() => {
-          notify("⏰ Rappel : " + t.title, { body: `Prévu à ${time.slice(0, 5)}` });
+          notify("⏰ Rappel : " + t.title, {
+            body: `Prévu à ${time.slice(0, 5)}`,
+            tag: `flow-day-task-${t.id}`,
+            silent,
+            requireInteraction: true,
+          });
         }, delay);
         timersRef.current.push(id);
       }
@@ -114,7 +128,12 @@ export function useScheduledReminders() {
       const delay = next.getTime() - now;
       if (delay < 24 * 60 * 60 * 1000) {
         const id = window.setTimeout(() => {
-          notify("🌅 Bonjour !", { body: "Voici votre plan du jour. Allez-y, c'est parti !" });
+          notify("🌅 Bonjour !", {
+            body: "Voici votre plan du jour. Allez-y, c'est parti !",
+            tag: "flow-day-daily",
+            silent,
+            requireInteraction: true,
+          });
         }, delay);
         timersRef.current.push(id);
       }
