@@ -6,7 +6,8 @@ import {
 } from "@capacitor/local-notifications";
 import { buildReminderPlan, type ReminderSettings, type ReminderTask } from "./reminder-plan";
 
-const CHANNEL_ID = "flow-day-reminders-v1";
+const SOUND_CHANNEL_ID = "flow-day-reminders-sound-v1";
+const SILENT_CHANNEL_ID = "flow-day-reminders-silent-v1";
 const ACTION_TYPE_ID = "flow-day-reminder-actions";
 
 export type NativeReminderReadiness = {
@@ -20,22 +21,37 @@ export function isNativeReminderPlatform(): boolean {
   return typeof window !== "undefined" && Capacitor.isNativePlatform();
 }
 
-async function ensureAndroidChannel() {
+async function ensureAndroidChannels() {
   if (Capacitor.getPlatform() !== "android") return;
   const channels = await LocalNotifications.listChannels();
-  if (channels.channels.some((channel) => channel.id === CHANNEL_ID)) return;
+  const existing = new Set(channels.channels.map((channel) => channel.id));
 
-  await LocalNotifications.createChannel({
-    id: CHANNEL_ID,
-    name: "Rappels Flow Day",
-    description: "Rappels sonores des tâches et du plan quotidien",
-    sound: "flow_day_reminder.wav",
-    importance: 5,
-    visibility: 1,
-    vibration: true,
-    lights: true,
-    lightColor: "#6366F1",
-  });
+  if (!existing.has(SOUND_CHANNEL_ID)) {
+    await LocalNotifications.createChannel({
+      id: SOUND_CHANNEL_ID,
+      name: "Rappels Flow Day sonores",
+      description: "Rappels sonores des tâches et du plan quotidien",
+      sound: "flow_day_reminder.wav",
+      importance: 5,
+      visibility: 1,
+      vibration: true,
+      lights: true,
+      lightColor: "#6366F1",
+    });
+  }
+
+  if (!existing.has(SILENT_CHANNEL_ID)) {
+    await LocalNotifications.createChannel({
+      id: SILENT_CHANNEL_ID,
+      name: "Rappels Flow Day silencieux",
+      description: "Rappels sans son ni vibration",
+      importance: 3,
+      visibility: 1,
+      vibration: false,
+      lights: true,
+      lightColor: "#6366F1",
+    });
+  }
 }
 
 async function ensureActionTypes() {
@@ -76,7 +92,7 @@ export async function requestNativeReminderPermission(): Promise<NativeReminderR
   if (!isNativeReminderPlatform()) return getNativeReminderReadiness();
   const current = await LocalNotifications.checkPermissions();
   if (current.display !== "granted") await LocalNotifications.requestPermissions();
-  await ensureAndroidChannel();
+  await ensureAndroidChannels();
   await ensureActionTypes();
   return getNativeReminderReadiness();
 }
@@ -90,6 +106,11 @@ export async function requestExactAlarmAccess(): Promise<NativeReminderReadiness
     await LocalNotifications.changeExactNotificationSetting();
   }
   return getNativeReminderReadiness();
+}
+
+function nativeChannelId(sound: boolean) {
+  if (Capacitor.getPlatform() !== "android") return undefined;
+  return sound ? SOUND_CHANNEL_ID : SILENT_CHANNEL_ID;
 }
 
 function toNativeSchema(
@@ -106,9 +127,9 @@ function toNativeSchema(
         allowWhileIdle: true,
       },
       sound: item.sound ? "flow_day_reminder.wav" : undefined,
-      channelId: Capacitor.getPlatform() === "android" ? CHANNEL_ID : undefined,
+      channelId: nativeChannelId(item.sound),
       actionTypeId: ACTION_TYPE_ID,
-      interruptionLevel: "timeSensitive",
+      interruptionLevel: item.sound ? "timeSensitive" : "passive",
       extra: { flowDayManaged: true, kind: "daily", url: "/today" },
     };
   }
@@ -119,9 +140,9 @@ function toNativeSchema(
     body: item.body,
     schedule: { at: item.at, allowWhileIdle: true },
     sound: item.sound ? "flow_day_reminder.wav" : undefined,
-    channelId: Capacitor.getPlatform() === "android" ? CHANNEL_ID : undefined,
+    channelId: nativeChannelId(item.sound),
     actionTypeId: ACTION_TYPE_ID,
-    interruptionLevel: "timeSensitive",
+    interruptionLevel: item.sound ? "timeSensitive" : "passive",
     extra: {
       flowDayManaged: true,
       kind: "task",
@@ -142,7 +163,7 @@ export async function syncNativeReminders(
     return { scheduled: 0, skipped: true, reason: "permission" };
   }
 
-  await ensureAndroidChannel();
+  await ensureAndroidChannels();
   await ensureActionTypes();
 
   const pending = await LocalNotifications.getPending();
@@ -176,9 +197,12 @@ export async function scheduleNativeTestReminder(delaySeconds = 5): Promise<void
         id: 900_002,
         title: "🔔 Test Flow Day",
         body: "Le rappel sonore local fonctionne.",
-        schedule: { at: new Date(Date.now() + Math.max(2, delaySeconds) * 1000), allowWhileIdle: true },
+        schedule: {
+          at: new Date(Date.now() + Math.max(2, delaySeconds) * 1000),
+          allowWhileIdle: true,
+        },
         sound: "flow_day_reminder.wav",
-        channelId: Capacitor.getPlatform() === "android" ? CHANNEL_ID : undefined,
+        channelId: nativeChannelId(true),
         actionTypeId: ACTION_TYPE_ID,
         interruptionLevel: "timeSensitive",
         extra: { flowDayManaged: true, kind: "test", url: "/settings" },
