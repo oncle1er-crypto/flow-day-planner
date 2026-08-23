@@ -91,41 +91,71 @@ function AuthPage() {
         </div>
 
         <div className="rounded-3xl glass p-6 shadow-card">
-          <div className="flex gap-1 p-1 bg-secondary/60 rounded-xl mb-6">
-            <button
-              onClick={() => setMode("signin")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${mode === "signin" ? "bg-background text-foreground shadow-soft" : "text-muted-foreground"}`}
-            >
-              Connexion
-            </button>
-            <button
-              onClick={() => setMode("signup")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${mode === "signup" ? "bg-background text-foreground shadow-soft" : "text-muted-foreground"}`}
-            >
-              Inscription
-            </button>
-          </div>
+          {mode !== "forgot" && (
+            <div className="flex gap-1 p-1 bg-secondary/60 rounded-xl mb-6">
+              <button
+                onClick={() => switchMode("signin")}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${mode === "signin" ? "bg-background text-foreground shadow-soft" : "text-muted-foreground"}`}
+              >
+                Connexion
+              </button>
+              <button
+                onClick={() => switchMode("signup")}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${mode === "signup" ? "bg-background text-foreground shadow-soft" : "text-muted-foreground"}`}
+              >
+                Inscription
+              </button>
+            </div>
+          )}
 
-          <form onSubmit={handleEmail} className="space-y-3">
-            {mode === "signup" && (
+          {mode === "forgot" && sent ? (
+            <div className="space-y-4 text-center">
+              <MailCheck className="mx-auto h-8 w-8 text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Si un compte existe pour <span className="font-medium text-foreground">{email}</span>, un lien de
+                réinitialisation vient d'être envoyé. Vérifiez aussi vos spams.
+              </p>
+              <Button variant="ghost" className="w-full" onClick={() => switchMode("signin")}>
+                Retour à la connexion
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleEmail} className="space-y-3">
+              {mode === "forgot" && (
+                <p className="text-sm text-muted-foreground">
+                  Entrez votre email, nous vous enverrons un lien pour définir un nouveau mot de passe.
+                </p>
+              )}
+              {mode === "signup" && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="name">Nom complet</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" />
+                </div>
+              )}
               <div className="space-y-1.5">
-                <Label htmlFor="name">Nom complet</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" />
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" />
               </div>
-            )}
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-            </div>
-            <Button type="submit" disabled={loading} className="w-full h-11 bg-gradient-primary shadow-glow">
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-              {mode === "signup" ? "Créer mon compte" : "Se connecter"}
-            </Button>
-          </form>
+              {mode !== "forgot" && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
+              )}
+              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" disabled={loading} className="w-full h-11 bg-gradient-primary shadow-glow">
+                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                {mode === "forgot" ? "Envoyer le lien" : mode === "signup" ? "Créer mon compte" : "Se connecter"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => switchMode(mode === "forgot" ? "signin" : "forgot")}
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition"
+              >
+                {mode === "forgot" ? "Retour à la connexion" : "Mot de passe oublié ?"}
+              </button>
+            </form>
+          )}
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
