@@ -6,6 +6,7 @@ import { Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fmtRelative } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/notifications")({ component: NotifPage });
 
