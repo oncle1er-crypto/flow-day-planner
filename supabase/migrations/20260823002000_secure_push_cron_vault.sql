@@ -2,12 +2,16 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
 -- Secure replacement for the legacy push-reminders cron.
--- The service-role JWT is NEVER stored in this repository or in cron.job.
--- Before applying this migration in production, create/replace the Vault secret:
---   name: push_reminders_service_role_jwt
---   value: the NEW rotated Supabase service_role JWT
+-- The backend API key is NEVER stored in this repository or in cron.job.
 --
--- The cron command reads the decrypted value at execution time from Vault.
+-- Supabase now recommends replacing legacy service_role JWTs with a new
+-- server-side secret key (sb_secret_...). Store that key in Vault before
+-- applying this migration:
+--   name: push_reminders_server_key
+--   value: the NEW sb_secret_... key
+--
+-- pg_net must send modern secret keys in the `apikey` header. The Edge Function
+-- independently compares that value with its own platform-provided secret key.
 
 DO $$
 BEGIN
@@ -24,10 +28,10 @@ SELECT cron.schedule(
     url := 'https://sjdhvzjaqarlqcqpkfzd.supabase.co/functions/v1/push-reminders',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || (
+      'apikey', (
         SELECT decrypted_secret
         FROM vault.decrypted_secrets
-        WHERE name = 'push_reminders_service_role_jwt'
+        WHERE name = 'push_reminders_server_key'
         ORDER BY created_at DESC
         LIMIT 1
       )
