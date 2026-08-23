@@ -1,0 +1,83 @@
+name: Production E2E
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: read
+
+concurrency:
+  group: production-e2e
+  cancel-in-progress: true
+
+jobs:
+  production-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      E2E_BASE_URL: https://plannificateur.vercel.app
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Require connected E2E credentials
+        shell: bash
+        run: |
+          if [[ -z "$E2E_EMAIL" || -z "$E2E_PASSWORD" ]]; then
+            echo "::error::GitHub secrets E2E_EMAIL and E2E_PASSWORD are required."
+            exit 1
+          fi
+
+      - name: Wait for Vercel deployment of this commit
+        shell: bash
+        run: |
+          for attempt in {1..60}; do
+            state="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/status" \
+              --jq '[.statuses[] | select(.context == "Vercel")][0].state // "pending"')"
+            echo "Vercel status for $GITHUB_SHA: $state ($attempt/60)"
+            if [[ "$state" == "success" ]]; then
+              break
+            fi
+            if [[ "$state" == "failure" || "$state" == "error" ]]; then
+              echo "::error::Vercel deployment failed for $GITHUB_SHA."
+              exit 1
+            fi
+            if [[ "$attempt" == "60" ]]; then
+              echo "::error::Timed out waiting for Vercel deployment of $GITHUB_SHA."
+              exit 1
+            fi
+            sleep 10
+          done
+
+          curl --fail --silent --show-error --max-time 15 "$E2E_BASE_URL/auth" >/dev/null
+          echo "Exact commit is deployed and production is reachable."
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run connected production suite
+        run: npx playwright test tests/e2e/connected.spec.ts
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-playwright-report
+          path: playwright-report/
+          retention-days: 14

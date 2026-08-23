@@ -18,4 +18,3 @@ export const syncAchievements = createServerFn({ method: "POST" })
     const unlocked = (data ?? []).map((r: { achievement_key: string }) => r.achievement_key);
     return { unlocked };
   });
-
