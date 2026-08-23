@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,15 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Connectez-vous pour organiser vos tâches, habitudes et objectifs." },
     ],
   }),
-  beforeLoad: async () => {
+  validateSearch: (s: Record<string, unknown>): { next?: string } =>
+    typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//")
+      ? { next: s.next }
+      : {},
+  beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/today" });
+    if (!data.user) return;
+    if (search.next) throw redirect({ href: search.next });
+    throw redirect({ to: "/today" });
   },
   component: AuthPage,
 });
@@ -25,7 +31,8 @@ export const Route = createFileRoute("/auth")({
 type Mode = "signin" | "signup" | "forgot";
 
 function AuthPage() {
-  const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const returnTo = next ?? "/today";
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +66,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/today`,
+            emailRedirectTo: `${window.location.origin}${returnTo}`,
             data: { full_name: name },
           },
         });
@@ -69,7 +76,7 @@ function AuthPage() {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
       }
-      navigate({ to: "/today" });
+      window.location.href = returnTo;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Une erreur est survenue.";
       setError(msg);
