@@ -79,7 +79,9 @@ export const Route = createFileRoute("/api/public/ai-assistant")({
           },
         });
 
-        const { data: userData, error: userError } = await supabase.auth.getUser();
+        const token = authHeader.slice("Bearer ".length);
+        const { data: userData, error: userError } = await supabase.auth.getUser(token);
+
         if (userError || !userData?.user) {
           return json({ error: "Non authentifié" }, 401);
         }
