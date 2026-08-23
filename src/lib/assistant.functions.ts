@@ -65,7 +65,6 @@ export const askAssistant = createServerFn({ method: "POST" })
     return { mode: data.mode, message };
   });
 
-
 const CreateBatchSchema = z.object({
   tasks: z.array(
     z.object({
