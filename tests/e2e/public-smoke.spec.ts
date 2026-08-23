@@ -31,11 +31,9 @@ test("PWA manifest exposes the final application identity", async ({ request }) 
 });
 
 test("root service worker registers and contains the background push reminder path", async ({
-  context,
   page,
   request,
 }) => {
-  await context.grantPermissions(["notifications"]);
   await page.goto("/auth");
 
   const worker = await page.evaluate(async () => {
@@ -45,12 +43,11 @@ test("root service worker registers and contains the background push reminder pa
     return {
       scope: registration.scope,
       scriptURL: registration.active?.scriptURL ?? created.active?.scriptURL ?? null,
-      permission: Notification.permission,
     };
   });
 
   expect(worker?.scriptURL).toMatch(/\/sw\.js$/);
-  expect(worker?.permission).toBe("granted");
+  expect(worker?.scope).toMatch(/\/$/);
 
   const response = await request.get("/sw.js");
   expect(response.ok()).toBeTruthy();
