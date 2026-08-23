@@ -1,0 +1,53 @@
+name: Production smoke reminders
+
+on:
+  push:
+    branches:
+      - chatgpt/prod-smoke-reminders
+
+permissions:
+  contents: read
+
+jobs:
+  production-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      E2E_BASE_URL: https://plannificateur.vercel.app
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Require production E2E credentials
+        shell: bash
+        run: |
+          if [[ -z "$E2E_EMAIL" || -z "$E2E_PASSWORD" ]]; then
+            echo "::error::GitHub secrets E2E_EMAIL and E2E_PASSWORD are required."
+            exit 1
+          fi
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run authenticated production regressions
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-playwright-report
+          path: playwright-report/
+          retention-days: 7
