@@ -9,6 +9,8 @@ import {
   type NativeReminderReadiness,
 } from "@/lib/native-reminders";
 
+const DIAGNOSTIC_KEY = "flow-day-native-notification-diagnostic-v2";
+
 const initialState: NativeReminderReadiness = {
   supported: false,
   platform: "web",
@@ -31,7 +33,16 @@ export function useNativeReminders() {
 
   useEffect(() => {
     if (!isNativeReminderPlatform()) return;
-    void refresh();
+    void refresh().then(async (next) => {
+      if (next.permission !== "granted") return;
+      if (window.localStorage.getItem(DIAGNOSTIC_KEY) === "done") return;
+      try {
+        await showNativeImmediateTestNotification();
+        window.localStorage.setItem(DIAGNOSTIC_KEY, "done");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    });
   }, [refresh]);
 
   const requestPermission = useCallback(async () => {
@@ -40,6 +51,10 @@ export function useNativeReminders() {
     try {
       const next = await requestNativeReminderPermission();
       setReadiness(next);
+      if (next.permission === "granted") {
+        await showNativeImmediateTestNotification();
+        window.localStorage.setItem(DIAGNOSTIC_KEY, "done");
+      }
       return next;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
