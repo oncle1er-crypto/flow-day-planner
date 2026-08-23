@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Task, TaskInsert, TaskUpdate, Status } from "@/lib/task-utils";
 import { toast } from "sonner";
 import { enqueueOp, isOnline } from "@/lib/sync-queue";
+import { generateNextOccurrence } from "@/lib/recurrence.functions";
 
 export function useTasks(filter?: { dueOn?: string; range?: [string, string]; status?: Status[]; overdue?: boolean }) {
   return useQuery<Task[]>({
