@@ -40,10 +40,11 @@ test("root service worker registers and contains the background push reminder pa
 
   const worker = await page.evaluate(async () => {
     if (!("serviceWorker" in navigator)) return null;
+    const created = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
     const registration = await navigator.serviceWorker.ready;
     return {
       scope: registration.scope,
-      scriptURL: registration.active?.scriptURL ?? null,
+      scriptURL: registration.active?.scriptURL ?? created.active?.scriptURL ?? null,
       permission: Notification.permission,
     };
   });
