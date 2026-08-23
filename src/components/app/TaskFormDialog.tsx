@@ -38,9 +38,15 @@ export function TaskFormDialog({
   const [status, setStatus] = useState<Status>("todo");
   const [categoryId, setCategoryId] = useState<string>("none");
   const [reminder, setReminder] = useState(false);
+  const [recurrence, setRecurrence] = useState<RecurrenceType>("none");
+  const [recDays, setRecDays] = useState<number[]>([]);
+  const [recEnd, setRecEnd] = useState("");
+  const [recMax, setRecMax] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setError(null);
     if (task) {
       setTitle(task.title);
       setDescription(task.description ?? "");
@@ -50,6 +56,11 @@ export function TaskFormDialog({
       setStatus(task.status as Status);
       setCategoryId(task.category_id ?? "none");
       setReminder(task.reminder_enabled);
+      setRecurrence((task.recurrence ?? "none") as RecurrenceType);
+      const cfg = (task.recurrence_config ?? {}) as RecurrenceConfig;
+      setRecDays(Array.isArray(cfg.days_of_week) ? cfg.days_of_week : []);
+      setRecEnd(task.recurrence_end_date ?? "");
+      setRecMax(cfg.max_occurrences ? String(cfg.max_occurrences) : "");
     } else {
       setTitle("");
       setDescription("");
@@ -59,11 +70,34 @@ export function TaskFormDialog({
       setStatus("todo");
       setCategoryId("none");
       setReminder(false);
+      setRecurrence("none");
+      setRecDays([]);
+      setRecEnd("");
+      setRecMax("");
     }
   }, [open, task, defaultDate]);
 
+  const toggleDay = (d: number) =>
+    setRecDays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort()));
+
   const handleSave = async () => {
     if (!title.trim()) return;
+    if (recurrence !== "none" && !dueDate) {
+      setError("Une tâche récurrente doit avoir une date de départ.");
+      return;
+    }
+    if (recurrence === "custom" && recDays.length === 0) {
+      setError("Choisissez au moins un jour de la semaine.");
+      return;
+    }
+    const maxN = recMax ? Math.max(1, Number(recMax) || 0) : undefined;
+    const config =
+      recurrence === "none"
+        ? null
+        : ({
+            ...(recurrence === "custom" ? { days_of_week: recDays } : {}),
+            ...(maxN ? { max_occurrences: maxN } : {}),
+          } as RecurrenceConfig);
     const reminderAt = reminder && dueDate ? new Date(`${dueDate}T${dueTime || "09:00"}:00`).toISOString() : null;
     const payload = {
       title: title.trim(),
@@ -75,13 +109,21 @@ export function TaskFormDialog({
       category_id: categoryId === "none" ? null : categoryId,
       reminder_enabled: reminder,
       reminder_at: reminderAt,
+      recurrence,
+      recurrence_config: config,
+      recurrence_end_date: recurrence === "none" ? null : recEnd || null,
     };
-    if (editing && task) {
-      await update.mutateAsync({ id: task.id, patch: payload });
-    } else {
-      await create.mutateAsync(payload);
+    try {
+      setError(null);
+      if (editing && task) {
+        await update.mutateAsync({ id: task.id, patch: payload });
+      } else {
+        await create.mutateAsync(payload);
+      }
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Enregistrement impossible.");
     }
-    onOpenChange(false);
   };
 
   return (
