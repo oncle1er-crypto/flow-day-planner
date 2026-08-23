@@ -5,6 +5,7 @@ import { useGamification } from "@/hooks/use-gamification";
 import { useScheduledReminders } from "@/hooks/use-push-notifications";
 import { useOfflineSync } from "@/hooks/use-online-status";
 import { useRecurrenceCatchup } from "@/hooks/use-recurrence-catchup";
+import { useTimezoneSync } from "@/hooks/use-timezone-sync";
 
 export function AppShell({
   children,
@@ -19,6 +20,8 @@ export function AppShell({
   action?: ReactNode;
   hideHeader?: boolean;
 }) {
+  // Keep server-side reminder scheduling aligned with the device timezone.
+  useTimezoneSync();
   // Background hook: detects newly unlocked achievements on any authenticated page
   useGamification();
   // Schedules local notifications for tasks & daily reminder
