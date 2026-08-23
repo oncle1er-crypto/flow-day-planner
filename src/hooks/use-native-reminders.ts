@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   getNativeReminderReadiness,
-  installNativeReminderActionHandler,
   isNativeReminderPlatform,
   requestExactAlarmAccess,
   requestNativeReminderPermission,
@@ -30,13 +29,6 @@ export function useNativeReminders() {
   useEffect(() => {
     if (!isNativeReminderPlatform()) return;
     void refresh();
-    let remove: (() => Promise<void>) | null = null;
-    void installNativeReminderActionHandler().then((cleanup) => {
-      remove = cleanup;
-    });
-    return () => {
-      if (remove) void remove();
-    };
   }, [refresh]);
 
   const requestPermission = useCallback(async () => {
