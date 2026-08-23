@@ -21,6 +21,7 @@ export default defineConfig({
   // uniquement dans un fork dédié.
   vite: {
     plugins: [
+      mcpPlugin(),
       VitePWA({
         registerType: "autoUpdate",
         injectRegister: null,
@@ -33,6 +34,8 @@ export default defineConfig({
           navigateFallbackDenylist: [
             /^\/api\//,
             /^\/~oauth/,
+            /^\/mcp/,
+            /^\/\.well-known\//,
             /^\/sw-push\.js$/,
           ],
           cleanupOutdatedCaches: true,
