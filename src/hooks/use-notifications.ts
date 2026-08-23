@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { NotificationRow } from "@/lib/task-utils";
+import { toast } from "sonner";
 
 export function useNotifications() {
   return useQuery<NotificationRow[]>({
@@ -10,6 +11,9 @@ export function useNotifications() {
       if (error) throw error;
       return data ?? [];
     },
+    staleTime: 15_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -26,6 +30,7 @@ export function useMarkRead() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+    onError: (error: Error) => toast.error(error.message || "Impossible de marquer la notification comme lue."),
   });
 }
 
@@ -37,5 +42,6 @@ export function useMarkAllRead() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+    onError: (error: Error) => toast.error(error.message || "Impossible de marquer toutes les notifications comme lues."),
   });
 }
