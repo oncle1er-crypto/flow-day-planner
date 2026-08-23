@@ -7,12 +7,9 @@ export interface SyncOp {
   id: string;
   table: string;
   action: SyncAction;
-  /** Row data for insert/update */
   payload?: Record<string, unknown>;
-  /** Equality filter columns for update/delete */
   match?: Record<string, unknown>;
   createdAt: number;
-  /** When defined, replaces this temp id with the server-generated id in subsequent ops */
   tempId?: string;
 }
 
@@ -69,14 +66,18 @@ async function removeOp(id: string) {
 async function applyOp(op: SyncOp): Promise<void> {
   const tbl = supabase.from(op.table as never);
   if (op.action === "insert" && op.payload) {
+    // Runtime table names are an intentional boundary of the generic offline queue.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (tbl as any).insert(op.payload);
     if (error) throw error;
   } else if (op.action === "update" && op.payload && op.match) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (tbl as any).update(op.payload);
     for (const [k, v] of Object.entries(op.match)) q = q.eq(k, v);
     const { error } = await q;
     if (error) throw error;
   } else if (op.action === "delete" && op.match) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (tbl as any).delete();
     for (const [k, v] of Object.entries(op.match)) q = q.eq(k, v);
     const { error } = await q;
@@ -86,7 +87,6 @@ async function applyOp(op: SyncOp): Promise<void> {
 
 let flushing = false;
 
-/** Drains the queue sequentially. Stops on first error so order is preserved. */
 export async function flushQueue(): Promise<{ applied: number; failed: number }> {
   if (flushing) return { applied: 0, failed: 0 };
   if (typeof navigator !== "undefined" && !navigator.onLine) return { applied: 0, failed: 0 };
