@@ -180,7 +180,8 @@ export async function syncNativeReminders(
 }
 
 export async function scheduleNativeTestReminder(delaySeconds = 5): Promise<void> {
-  if (!isNativeReminderPlatform()) throw new Error("Disponible uniquement dans l’application mobile");
+  if (!isNativeReminderPlatform())
+    throw new Error("Disponible uniquement dans l’application mobile");
   const ready = await requestNativeReminderPermission();
   if (ready.permission !== "granted") throw new Error("Permission de notification refusée");
   if (ready.platform === "android" && ready.exactAlarm !== "granted") {

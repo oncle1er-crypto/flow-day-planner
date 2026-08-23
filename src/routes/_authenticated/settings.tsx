@@ -266,7 +266,9 @@ function SettingsPage() {
               {native.platform === "android" && (
                 <div className="flex items-center justify-between rounded-xl bg-background/60 p-3">
                   <span>Alarmes exactes Android</span>
-                  <span className={native.exactAlarm === "granted" ? "text-success" : "text-warning"}>
+                  <span
+                    className={native.exactAlarm === "granted" ? "text-success" : "text-warning"}
+                  >
                     {native.exactAlarm === "granted" ? "Autorisées" : "À autoriser"}
                   </span>
                 </div>
