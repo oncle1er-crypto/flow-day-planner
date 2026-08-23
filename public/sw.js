@@ -4,7 +4,7 @@
  * Privacy invariant: only same-origin application assets/pages are cached.
  * Supabase and all cross-origin API responses always stay network-only.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const STATIC_CACHE = `flow-day-static-${VERSION}`;
 const PAGE_CACHE = `flow-day-pages-${VERSION}`;
 const OWN_CACHE_PREFIXES = ["flow-day-static-", "flow-day-pages-"];
@@ -152,13 +152,25 @@ self.addEventListener("push", (event) => {
   }
 
   const title = payload.title || "Rappel";
+  const tag = payload.tag || `flow-day-${payload.kind || "reminder"}-${payload.refId || "generic"}`;
   const options = {
     body: payload.body || "",
     icon: payload.icon || "/icon-512.png",
     badge: payload.badge || "/icon-512.png",
-    tag: payload.tag,
-    data: { url: payload.url || "/today" },
-    requireInteraction: !!payload.requireInteraction,
+    tag,
+    renotify: payload.renotify !== false,
+    silent: payload.silent === true,
+    timestamp: payload.timestamp || Date.now(),
+    vibrate: payload.vibrate || [250, 100, 250],
+    data: {
+      url: payload.url || "/today",
+      taskId: payload.taskId || null,
+      kind: payload.kind || "reminder",
+    },
+    actions: Array.isArray(payload.actions)
+      ? payload.actions
+      : [{ action: "open", title: "Ouvrir Flow Day" }],
+    requireInteraction: payload.requireInteraction !== false,
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
