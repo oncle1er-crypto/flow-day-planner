@@ -29,6 +29,14 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function methodNotAllowed() {
+  return new Response(JSON.stringify({ error: "Méthode non autorisée" }), {
+    status: 405,
+    headers: { "Content-Type": "application/json", Allow: "POST" },
+  });
+}
+
+
 export const Route = createFileRoute("/api/public/ai-assistant")({
   server: {
     handlers: {
