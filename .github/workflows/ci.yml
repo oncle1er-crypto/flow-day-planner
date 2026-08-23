@@ -92,6 +92,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Prepare remote-shell asset directories
+        run: |
+          mkdir -p dist android/app/src/main/assets
+          printf '<!doctype html><title>Flow Day Planner</title>' > dist/index.html
+
       - name: Verify Capacitor Android configuration
         run: npx cap sync android
 
@@ -121,6 +126,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+
+      - name: Prepare remote-shell web directory
+        run: |
+          mkdir -p dist
+          printf '<!doctype html><title>Flow Day Planner</title>' > dist/index.html
 
       - name: Verify Capacitor iOS configuration
         run: npx cap sync ios
