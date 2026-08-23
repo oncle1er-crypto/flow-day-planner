@@ -5,6 +5,7 @@ import {
   requestExactAlarmAccess,
   requestNativeReminderPermission,
   scheduleNativeTestReminder,
+  showNativeImmediateTestNotification,
   type NativeReminderReadiness,
 } from "@/lib/native-reminders";
 
@@ -13,6 +14,8 @@ const initialState: NativeReminderReadiness = {
   platform: "web",
   permission: "unsupported",
   exactAlarm: "unsupported",
+  pending: 0,
+  soundChannelReady: false,
 };
 
 export function useNativeReminders() {
@@ -61,11 +64,12 @@ export function useNativeReminders() {
     }
   }, []);
 
-  const test = useCallback(async () => {
+  const testImmediate = useCallback(async () => {
     setBusy(true);
     setError(null);
     try {
-      await scheduleNativeTestReminder(5);
+      await showNativeImmediateTestNotification();
+      await refresh();
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -73,7 +77,22 @@ export function useNativeReminders() {
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [refresh]);
+
+  const test = useCallback(async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await scheduleNativeTestReminder(5);
+      await refresh();
+      return true;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, [refresh]);
 
   return {
     ...readiness,
@@ -82,6 +101,7 @@ export function useNativeReminders() {
     refresh,
     requestPermission,
     requestExactAlarm,
+    testImmediate,
     test,
   };
 }
