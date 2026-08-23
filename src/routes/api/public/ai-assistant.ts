@@ -36,7 +36,6 @@ function methodNotAllowed() {
   });
 }
 
-
 export const Route = createFileRoute("/api/public/ai-assistant")({
   server: {
     handlers: {
@@ -155,9 +154,9 @@ export const Route = createFileRoute("/api/public/ai-assistant")({
           );
         }
 
-        const body = (await res.json().catch(() => null)) as
-          | { choices?: Array<{ message?: { content?: string } }> }
-          | null;
+        const body = (await res.json().catch(() => null)) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        } | null;
         const content = body?.choices?.[0]?.message?.content ?? "";
 
         if (mode === "parse_tasks") {
@@ -182,4 +181,3 @@ export const Route = createFileRoute("/api/public/ai-assistant")({
     },
   },
 });
-
