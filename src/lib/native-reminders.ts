@@ -1,9 +1,5 @@
-import { Capacitor } from "@capacitor/core";
-import {
-  LocalNotifications,
-  type LocalNotificationSchema,
-  type PermissionState,
-} from "@capacitor/local-notifications";
+import { Capacitor, type PermissionState } from "@capacitor/core";
+import { LocalNotifications, type LocalNotificationSchema } from "@capacitor/local-notifications";
 import { buildReminderPlan, type ReminderSettings, type ReminderTask } from "./reminder-plan";
 
 const SOUND_CHANNEL_ID = "flow-day-reminders-sound-v1";
