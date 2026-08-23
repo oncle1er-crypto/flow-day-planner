@@ -1,8 +1,6 @@
 /**
- * Guarded service-worker registration for the app shell (vite-plugin-pwa).
- * - Never registers in dev, preview, iframes, or when ?sw=off is set.
- * - Unregisters any stale /sw.js in those contexts.
- * - Leaves the separate push worker (/sw-push.js) untouched.
+ * Guarded registration for Flow Day Planner's single root-scoped service worker.
+ * The same worker handles offline app assets and Web Push notifications.
  */
 import { toast } from "sonner";
 
@@ -39,15 +37,34 @@ async function unregisterAppSw() {
     const regs = await navigator.serviceWorker.getRegistrations();
     await Promise.all(
       regs
-        .filter((r) => {
-          const url = r.active?.scriptURL || r.installing?.scriptURL || r.waiting?.scriptURL || "";
-          return url.endsWith(APP_SW_URL);
+        .filter((registration) => {
+          const url =
+            registration.active?.scriptURL ||
+            registration.installing?.scriptURL ||
+            registration.waiting?.scriptURL ||
+            "";
+          return url.endsWith(APP_SW_URL) || url.endsWith("/sw-push.js");
         })
-        .map((r) => r.unregister()),
+        .map((registration) => registration.unregister()),
     );
   } catch {
-    /* ignore */
+    // Best-effort cleanup in preview/dev contexts.
   }
+}
+
+function loadedSameOriginResources(): string[] {
+  const urls = new Set<string>(["/", "/auth", "/manifest.webmanifest", "/icon-512.png"]);
+  if (typeof performance === "undefined") return [...urls];
+
+  for (const entry of performance.getEntriesByType("resource")) {
+    try {
+      const url = new URL(entry.name, window.location.origin);
+      if (url.origin === window.location.origin) urls.add(url.href);
+    } catch {
+      // Ignore malformed/opaque performance entries.
+    }
+  }
+  return [...urls];
 }
 
 let registered = false;
@@ -62,26 +79,34 @@ export async function registerAppSw() {
   }
 
   try {
-    const { Workbox } = await import("workbox-window");
-    const wb = new Workbox(APP_SW_URL);
+    const registration = await navigator.serviceWorker.register(APP_SW_URL, { scope: "/" });
+    const ready = await navigator.serviceWorker.ready;
 
-    let firstInstall = true;
-    wb.addEventListener("installed", (event) => {
-      if (!event.isUpdate && firstInstall) {
-        firstInstall = false;
-        toast.success("App prête hors-ligne", {
-          description: "Vous pouvez maintenant l'utiliser sans connexion.",
-        });
-      }
-    });
-    wb.addEventListener("waiting", () => {
-      toast("Nouvelle version disponible", {
-        description: "Rechargez pour mettre à jour.",
-        action: { label: "Recharger", onClick: () => window.location.reload() },
+    const worker =
+      ready.active ?? registration.active ?? registration.waiting ?? registration.installing;
+    worker?.postMessage({ type: "CACHE_URLS", urls: loadedSameOriginResources() });
+
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type !== "FLOW_DAY_CACHE_READY") return;
+      navigator.serviceWorker.removeEventListener("message", onMessage);
+      toast.success("Mode hors-ligne activé", {
+        description: "Les ressources déjà chargées sont disponibles sans connexion.",
+      });
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+
+    registration.addEventListener("updatefound", () => {
+      const installing = registration.installing;
+      if (!installing) return;
+      installing.addEventListener("statechange", () => {
+        if (installing.state === "installed" && navigator.serviceWorker.controller) {
+          toast("Nouvelle version disponible", {
+            description: "Rechargez pour mettre à jour.",
+            action: { label: "Recharger", onClick: () => window.location.reload() },
+          });
+        }
       });
     });
-
-    await wb.register();
   } catch (err) {
     console.warn("[sw] registration failed", err);
   }

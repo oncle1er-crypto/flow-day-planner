@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useCategories } from "@/hooks/use-categories";
 import { useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
@@ -101,7 +114,8 @@ export function TaskFormDialog({
             ...(recurrence === "custom" ? { days_of_week: recDays } : {}),
             ...(maxN ? { max_occurrences: maxN } : {}),
           } as RecurrenceConfig);
-    const reminderAt = reminder && dueDate ? new Date(`${dueDate}T${dueTime || "09:00"}:00`).toISOString() : null;
+    const reminderAt =
+      reminder && dueDate ? new Date(`${dueDate}T${dueTime || "09:00"}:00`).toISOString() : null;
     const payload = {
       title: title.trim(),
       description: description.trim() || null,
@@ -133,33 +147,59 @@ export function TaskFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">{editing ? "Modifier la tâche" : "Nouvelle tâche"}</DialogTitle>
+          <DialogTitle className="font-display">
+            {editing ? "Modifier la tâche" : "Nouvelle tâche"}
+          </DialogTitle>
           <DialogDescription>Notez ce que vous voulez accomplir.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="title">Titre</Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex : Appeler le client" autoFocus />
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ex : Appeler le client"
+              autoFocus
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="desc">Description</Label>
-            <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Détails optionnels" />
+            <Textarea
+              id="desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Détails optionnels"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <Input
+                id="date"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="time">Heure</Label>
-              <Input id="time" type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} />
+              <Input
+                id="time"
+                type="time"
+                value={dueTime}
+                onChange={(e) => setDueTime(e.target.value)}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Priorité</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Basse</SelectItem>
                   <SelectItem value="normal">Normale</SelectItem>
@@ -171,11 +211,15 @@ export function TaskFormDialog({
             <div className="space-y-1.5">
               <Label>Catégorie</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Aucune</SelectItem>
                   {categories?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -185,7 +229,9 @@ export function TaskFormDialog({
             <div className="space-y-1.5">
               <Label>Statut</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todo">À faire</SelectItem>
                   <SelectItem value="in_progress">En cours</SelectItem>
@@ -208,10 +254,14 @@ export function TaskFormDialog({
             <div className="space-y-1.5">
               <Label>Répétition</Label>
               <Select value={recurrence} onValueChange={(v) => setRecurrence(v as RecurrenceType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(RECURRENCE_LABEL) as RecurrenceType[]).map((k) => (
-                    <SelectItem key={k} value={k}>{RECURRENCE_LABEL[k]}</SelectItem>
+                    <SelectItem key={k} value={k}>
+                      {RECURRENCE_LABEL[k]}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -242,7 +292,12 @@ export function TaskFormDialog({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="rec-end">Fin (optionnel)</Label>
-                  <Input id="rec-end" type="date" value={recEnd} onChange={(e) => setRecEnd(e.target.value)} />
+                  <Input
+                    id="rec-end"
+                    type="date"
+                    value={recEnd}
+                    onChange={(e) => setRecEnd(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="rec-max">Nb max (optionnel)</Label>
@@ -261,7 +316,9 @@ export function TaskFormDialog({
 
           {editing && task && <SubtasksEditor taskId={task.id} />}
           {error && (
-            <p role="alert" className="text-sm text-destructive">{error}</p>
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
           )}
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
@@ -271,12 +328,19 @@ export function TaskFormDialog({
                 variant="ghost"
                 size="icon"
                 onClick={async () => {
-                  await update.mutateAsync({ id: task.id, patch: { is_archived: !task.is_archived } });
+                  await update.mutateAsync({
+                    id: task.id,
+                    patch: { is_archived: !task.is_archived },
+                  });
                   onOpenChange(false);
                 }}
                 aria-label={task.is_archived ? "Désarchiver" : "Archiver"}
               >
-                {task.is_archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                {task.is_archived ? (
+                  <ArchiveRestore className="h-4 w-4" />
+                ) : (
+                  <Archive className="h-4 w-4" />
+                )}
               </Button>
               <Button
                 variant="ghost"
@@ -292,9 +356,16 @@ export function TaskFormDialog({
               </Button>
             </div>
           )}
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={handleSave} disabled={!title.trim() || create.isPending || update.isPending}>
-            {(create.isPending || update.isPending) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={!title.trim() || create.isPending || update.isPending}
+          >
+            {(create.isPending || update.isPending) && (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            )}
             {editing ? "Enregistrer" : "Créer"}
           </Button>
         </DialogFooter>

@@ -6,7 +6,7 @@ import dailySummaryTool from "./tools/daily-summary";
 import listHabitsTool from "./tools/list-habits";
 
 // The OAuth issuer must be the direct Supabase host (the published proxy URL is rejected).
-const projectRef = import.meta.env['VITE_SUPABASE_PROJECT_ID'] ?? "project-ref-unset";
+const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-unset";
 
 export default defineMcp({
   name: "flow-day-planner",

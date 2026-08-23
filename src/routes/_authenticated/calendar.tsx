@@ -36,7 +36,14 @@ function CalendarPage() {
           <Button variant="ghost" size="icon" onClick={() => setAnchor(addDays(anchor, -7))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => { setAnchor(new Date()); setSelected(new Date()); }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setAnchor(new Date());
+              setSelected(new Date());
+            }}
+          >
             Aujourd'hui
           </Button>
           <Button variant="ghost" size="icon" onClick={() => setAnchor(addDays(anchor, 7))}>
@@ -55,10 +62,16 @@ function CalendarPage() {
                 key={iso}
                 onClick={() => setSelected(d)}
                 className={`relative aspect-square rounded-xl text-center transition flex flex-col items-center justify-center ${
-                  isSel ? "bg-gradient-primary text-primary-foreground shadow-glow" : isToday ? "bg-secondary border border-primary/40" : "bg-card/40 hover:bg-card"
+                  isSel
+                    ? "bg-gradient-primary text-primary-foreground shadow-glow"
+                    : isToday
+                      ? "bg-secondary border border-primary/40"
+                      : "bg-card/40 hover:bg-card"
                 }`}
               >
-                <span className="text-[10px] uppercase opacity-70">{format(d, "EEE", { locale: fr })}</span>
+                <span className="text-[10px] uppercase opacity-70">
+                  {format(d, "EEE", { locale: fr })}
+                </span>
                 <span className="font-display text-lg font-semibold">{format(d, "d")}</span>
                 {count > 0 && !isSel && (
                   <span className="absolute bottom-1 h-1 w-1 rounded-full bg-primary" />
@@ -70,7 +83,9 @@ function CalendarPage() {
 
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display font-semibold">{format(selected, "EEEE d MMMM", { locale: fr })}</h2>
+            <h2 className="font-display font-semibold">
+              {format(selected, "EEEE d MMMM", { locale: fr })}
+            </h2>
             <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
               <Plus className="h-4 w-4 mr-1" /> Ajouter
             </Button>

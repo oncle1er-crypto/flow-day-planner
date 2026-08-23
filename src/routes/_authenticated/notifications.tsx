@@ -46,10 +46,16 @@ function NotifPage() {
             <p className="text-sm text-destructive" role="alert">
               {error instanceof Error ? error.message : "Impossible de charger les notifications."}
             </p>
-            <Button size="sm" variant="ghost" onClick={() => refetch()}>Réessayer</Button>
+            <Button size="sm" variant="ghost" onClick={() => refetch()}>
+              Réessayer
+            </Button>
           </div>
         ) : items.length === 0 ? (
-          <EmptyState icon={Bell} title="Aucune notification" description="Vos rappels apparaîtront ici." />
+          <EmptyState
+            icon={Bell}
+            title="Aucune notification"
+            description="Vos rappels apparaîtront ici."
+          />
         ) : (
           items.map((n) => (
             <button
@@ -61,8 +67,15 @@ function NotifPage() {
               )}
             >
               <div className="flex items-start gap-3">
-                <div className={cn("h-9 w-9 rounded-xl grid place-items-center shrink-0", n.is_read ? "bg-secondary" : "bg-primary/15")}>
-                  <Bell className={cn("h-4 w-4", n.is_read ? "text-muted-foreground" : "text-primary")} />
+                <div
+                  className={cn(
+                    "h-9 w-9 rounded-xl grid place-items-center shrink-0",
+                    n.is_read ? "bg-secondary" : "bg-primary/15",
+                  )}
+                >
+                  <Bell
+                    className={cn("h-4 w-4", n.is_read ? "text-muted-foreground" : "text-primary")}
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{n.title}</p>

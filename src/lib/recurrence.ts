@@ -1,6 +1,13 @@
 import type { Task, TaskInsert } from "@/lib/task-utils";
 
-export type RecurrenceType = "none" | "daily" | "weekdays" | "weekly" | "monthly" | "yearly" | "custom";
+export type RecurrenceType =
+  | "none"
+  | "daily"
+  | "weekdays"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "custom";
 
 export type RecurrenceConfig = {
   /** Repeat every N periods (daily/weekly/monthly/yearly). Defaults to 1. */
@@ -40,7 +47,7 @@ function addDays(dateStr: string, n: number): string {
 }
 function addMonths(dateStr: string, n: number): string {
   const { y, m, d } = parse(dateStr);
-  const total = (y * 12 + (m - 1)) + n;
+  const total = y * 12 + (m - 1) + n;
   const ny = Math.floor(total / 12);
   const nm = (total % 12) + 1;
   return fmt(ny, nm, Math.min(d, daysInMonth(ny, nm)));
@@ -59,8 +66,14 @@ function normalizeConfig(config: unknown): RecurrenceConfig {
     : undefined;
   const interval = Number.isInteger(c.interval) && (c.interval as number) > 0 ? c.interval : 1;
   const max =
-    Number.isInteger(c.max_occurrences) && (c.max_occurrences as number) > 0 ? c.max_occurrences : undefined;
-  return { interval, ...(days && days.length ? { days_of_week: days } : {}), ...(max ? { max_occurrences: max } : {}) };
+    Number.isInteger(c.max_occurrences) && (c.max_occurrences as number) > 0
+      ? c.max_occurrences
+      : undefined;
+  return {
+    interval,
+    ...(days && days.length ? { days_of_week: days } : {}),
+    ...(max ? { max_occurrences: max } : {}),
+  };
 }
 
 /**

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { nextDueDate, buildNextOccurrence, weekdayOf, type RecurringTaskSource } from "./recurrence";
+import {
+  nextDueDate,
+  buildNextOccurrence,
+  weekdayOf,
+  type RecurringTaskSource,
+} from "./recurrence";
 
 describe("nextDueDate", () => {
   it("returns null when there is no recurrence", () => {
@@ -98,10 +103,18 @@ describe("buildNextOccurrence", () => {
 
   it("stops after max_occurrences", () => {
     expect(
-      buildNextOccurrence({ ...base, occurrence_index: 2, recurrence_config: { max_occurrences: 3 } }),
+      buildNextOccurrence({
+        ...base,
+        occurrence_index: 2,
+        recurrence_config: { max_occurrences: 3 },
+      }),
     ).toBeNull();
     expect(
-      buildNextOccurrence({ ...base, occurrence_index: 1, recurrence_config: { max_occurrences: 3 } }),
+      buildNextOccurrence({
+        ...base,
+        occurrence_index: 1,
+        recurrence_config: { max_occurrences: 3 },
+      }),
     ).not.toBeNull();
   });
 });

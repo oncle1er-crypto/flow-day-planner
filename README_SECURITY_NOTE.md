@@ -1,0 +1,1 @@
+Security-sensitive credentials must never be committed to this repository. Use Supabase Vault or deployment environment secrets for server-side credentials and rotate any credential that has ever appeared in Git history.

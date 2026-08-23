@@ -1,15 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { NotificationRow } from "@/lib/task-utils";
+import { toast } from "sonner";
 
 export function useNotifications() {
   return useQuery<NotificationRow[]>({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50);
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
       if (error) throw error;
       return data ?? [];
     },
+    staleTime: 15_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -26,6 +34,8 @@ export function useMarkRead() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+    onError: (error: Error) =>
+      toast.error(error.message || "Impossible de marquer la notification comme lue."),
   });
 }
 
@@ -33,9 +43,14 @@ export function useMarkAllRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("notifications").update({ is_read: true }).eq("is_read", false);
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("is_read", false);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+    onError: (error: Error) =>
+      toast.error(error.message || "Impossible de marquer toutes les notifications comme lues."),
   });
 }

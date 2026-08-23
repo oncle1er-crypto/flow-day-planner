@@ -7,7 +7,13 @@ export default defineTool({
   title: "Lister les habitudes",
   description: "Liste les habitudes de l'utilisateur connecté avec leurs journaux récents.",
   inputSchema: {
-    limit: z.number().int().min(1).max(50).default(20).describe("Nombre maximum d'habitudes renvoyées."),
+    limit: z
+      .number()
+      .int()
+      .min(1)
+      .max(50)
+      .default(20)
+      .describe("Nombre maximum d'habitudes renvoyées."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit }, ctx) => {

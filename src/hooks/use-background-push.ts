@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { savePushSubscription, deletePushSubscription, saveUserTimezone } from "@/lib/push.functions";
+import {
+  savePushSubscription,
+  deletePushSubscription,
+  saveUserTimezone,
+} from "@/lib/push.functions";
 import { VAPID_PUBLIC_KEY, urlBase64ToUint8Array } from "@/lib/vapid";
 
 type Status = "unsupported" | "idle" | "subscribed";
+
+const APP_SW_URL = "/sw.js";
 
 function arrayBufferToBase64Url(buf: ArrayBuffer | null): string {
   if (!buf) return "";
@@ -11,6 +17,15 @@ function arrayBufferToBase64Url(buf: ArrayBuffer | null): string {
   let s = "";
   for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function getAppServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | undefined> {
+  const existing = await navigator.serviceWorker.getRegistration("/");
+  if (existing?.active?.scriptURL.endsWith(APP_SW_URL)) return existing;
+
+  const registration = await navigator.serviceWorker.register(APP_SW_URL, { scope: "/" });
+  await navigator.serviceWorker.ready;
+  return registration;
 }
 
 export function useBackgroundPush() {
@@ -32,8 +47,8 @@ export function useBackgroundPush() {
     }
     (async () => {
       try {
-        const reg = await navigator.serviceWorker.getRegistration("/sw-push.js");
-        if (!reg) return;
+        const reg = await navigator.serviceWorker.getRegistration("/");
+        if (!reg?.active?.scriptURL.endsWith(APP_SW_URL)) return;
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
           setEndpoint(sub.endpoint);
@@ -62,10 +77,10 @@ export function useBackgroundPush() {
         setError("Permission refusée");
         return false;
       }
-      const reg =
-        (await navigator.serviceWorker.getRegistration("/sw-push.js")) ??
-        (await navigator.serviceWorker.register("/sw-push.js", { scope: "/" }));
-      await navigator.serviceWorker.ready;
+
+      const reg = await getAppServiceWorkerRegistration();
+      if (!reg) throw new Error("Service worker indisponible");
+
       let sub = await reg.pushManager.getSubscription();
       if (!sub) {
         sub = await reg.pushManager.subscribe({
@@ -83,12 +98,11 @@ export function useBackgroundPush() {
           user_agent: navigator.userAgent,
         },
       });
-      // Push the detected timezone so server-side cron fires at the right wall time
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
         await saveTz.mutateAsync(tz);
       } catch {
-        // ignore
+        // ignore timezone update failures; the subscription itself is valid
       }
       setEndpoint(sub.endpoint);
       setStatus("subscribed");
@@ -106,7 +120,7 @@ export function useBackgroundPush() {
     setError(null);
     setBusy(true);
     try {
-      const reg = await navigator.serviceWorker.getRegistration("/sw-push.js");
+      const reg = await navigator.serviceWorker.getRegistration("/");
       const sub = reg ? await reg.pushManager.getSubscription() : null;
       if (sub) {
         const ep = sub.endpoint;
@@ -114,7 +128,7 @@ export function useBackgroundPush() {
         try {
           await deletePushSubscription({ data: { endpoint: ep } });
         } catch {
-          // ignore
+          // The browser subscription is already removed; retrying server cleanup can happen later.
         }
       }
       setEndpoint(null);

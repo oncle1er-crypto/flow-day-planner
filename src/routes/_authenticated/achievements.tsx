@@ -6,7 +6,9 @@ import { useGamification } from "@/hooks/use-gamification";
 import { Lock, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/achievements")({ component: AchievementsPage });
+export const Route = createFileRoute("/_authenticated/achievements")({
+  component: AchievementsPage,
+});
 
 function AchievementsPage() {
   const { stats, xp, level, unlocked, isLoading } = useGamification();
@@ -61,7 +63,9 @@ function AchievementsPage() {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display font-semibold text-lg">Badges</h2>
-            <p className="text-sm text-muted-foreground">{unlockedCount}/{totalAchievements}</p>
+            <p className="text-sm text-muted-foreground">
+              {unlockedCount}/{totalAchievements}
+            </p>
           </div>
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Chargement…</p>
@@ -75,10 +79,17 @@ function AchievementsPage() {
                     key={a.key}
                     className={cn(
                       "rounded-2xl border p-4 shadow-card transition",
-                      isUnlocked ? "border-border bg-card/80" : "border-border/40 bg-card/30 opacity-60",
+                      isUnlocked
+                        ? "border-border bg-card/80"
+                        : "border-border/40 bg-card/30 opacity-60",
                     )}
                   >
-                    <div className={cn("h-10 w-10 rounded-xl grid place-items-center mb-3", isUnlocked ? tintClasses(a.tint) : "bg-muted/40 text-muted-foreground")}>
+                    <div
+                      className={cn(
+                        "h-10 w-10 rounded-xl grid place-items-center mb-3",
+                        isUnlocked ? tintClasses(a.tint) : "bg-muted/40 text-muted-foreground",
+                      )}
+                    >
                       {isUnlocked ? <Icon className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
                     </div>
                     <p className="font-display font-semibold text-sm leading-tight">{a.name}</p>

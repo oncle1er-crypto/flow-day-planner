@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { todayISO } from "@/lib/dates";
 
 type Permission = "default" | "granted" | "denied" | "unsupported";
 
@@ -13,9 +14,9 @@ function notify(title: string, options?: NotificationOptions) {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
   try {
-    new Notification(title, { icon: "/favicon.ico", badge: "/favicon.ico", ...options });
+    new Notification(title, { icon: "/icon-512.png", badge: "/icon-512.png", ...options });
   } catch {
-    // ignore
+    // Notification APIs can still throw on some embedded browsers; do not break the app.
   }
 }
 
@@ -54,7 +55,12 @@ export function useScheduledReminders() {
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return null;
-      const { data } = await supabase.from("user_settings").select("*").eq("user_id", u.user.id).maybeSingle();
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("*")
+        .eq("user_id", u.user.id)
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
   });
@@ -62,11 +68,10 @@ export function useScheduledReminders() {
   const { data: tasks } = useQuery({
     queryKey: ["tasks-for-reminders"],
     queryFn: async () => {
-      const todayISO = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from("tasks")
         .select("id,title,due_date,due_time,reminder_enabled,status")
-        .gte("due_date", todayISO)
+        .gte("due_date", todayISO())
         .neq("status", "done")
         .neq("status", "cancelled")
         .eq("is_archived", false);
@@ -77,7 +82,6 @@ export function useScheduledReminders() {
   });
 
   useEffect(() => {
-    // Clear previous timers
     timersRef.current.forEach((id) => window.clearTimeout(id));
     timersRef.current = [];
 
@@ -88,7 +92,6 @@ export function useScheduledReminders() {
     const now = Date.now();
     const leadMs = (settings.default_reminder_minutes ?? 15) * 60_000;
 
-    // Per-task reminders
     (tasks ?? []).forEach((t) => {
       if (!t.reminder_enabled || !t.due_date) return;
       const time = t.due_time ?? "09:00:00";
@@ -103,7 +106,6 @@ export function useScheduledReminders() {
       }
     });
 
-    // Daily summary reminder
     if (settings.daily_reminder_enabled && settings.daily_reminder_time) {
       const [h, m] = String(settings.daily_reminder_time).split(":").map(Number);
       const next = new Date();

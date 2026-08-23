@@ -35,12 +35,18 @@ function ProfilePage() {
         <div className="rounded-3xl bg-gradient-card border border-border p-6 shadow-card text-center">
           <div className="mx-auto h-20 w-20 rounded-full bg-gradient-primary shadow-glow grid place-items-center text-2xl font-display font-bold text-primary-foreground">
             {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="h-full w-full rounded-full object-cover"
+              />
             ) : (
               initials
             )}
           </div>
-          <h2 className="font-display text-xl font-semibold mt-3">{profile?.full_name ?? "Sans nom"}</h2>
+          <h2 className="font-display text-xl font-semibold mt-3">
+            {profile?.full_name ?? "Sans nom"}
+          </h2>
           <p className="text-sm text-muted-foreground">{profile?.email}</p>
         </div>
 
@@ -52,7 +58,11 @@ function ProfilePage() {
           <Row to="/settings" icon={User} label="Modifier le profil" />
         </nav>
 
-        <Button variant="outline" className="w-full h-11 text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive" onClick={handleSignOut}>
+        <Button
+          variant="outline"
+          className="w-full h-11 text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+          onClick={handleSignOut}
+        >
           <LogOut className="h-4 w-4 mr-2" /> Se déconnecter
         </Button>
       </div>
@@ -60,9 +70,20 @@ function ProfilePage() {
   );
 }
 
-function Row({ to, icon: Icon, label }: { to: "/tasks" | "/notifications" | "/settings" | "/achievements"; icon: typeof Settings; label: string }) {
+function Row({
+  to,
+  icon: Icon,
+  label,
+}: {
+  to: "/tasks" | "/notifications" | "/settings" | "/achievements";
+  icon: typeof Settings;
+  label: string;
+}) {
   return (
-    <Link to={to} className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 hover:bg-card transition">
+    <Link
+      to={to}
+      className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 p-4 hover:bg-card transition"
+    >
       <div className="h-9 w-9 rounded-xl bg-primary/10 grid place-items-center">
         <Icon className="h-4 w-4 text-primary" />
       </div>

@@ -4,7 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 
-type OAuthResult = { data?: { redirect_url?: string; redirect_to?: string; client?: { name?: string } } | null; error?: { message: string } | null };
+type OAuthResult = {
+  data?: { redirect_url?: string; redirect_to?: string; client?: { name?: string } } | null;
+  error?: { message: string } | null;
+};
 type OAuthApi = {
   getAuthorizationDetails: (id: string) => Promise<OAuthResult>;
   approveAuthorization: (id: string) => Promise<OAuthResult>;
@@ -35,7 +38,8 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   errorComponent: ({ error }) => (
     <main className="min-h-screen grid place-items-center p-6 text-center">
       <p className="text-sm text-muted-foreground">
-        Impossible de charger cette demande d'autorisation : {String((error as Error)?.message ?? error)}
+        Impossible de charger cette demande d'autorisation :{" "}
+        {String((error as Error)?.message ?? error)}
       </p>
     </main>
   ),
@@ -76,9 +80,12 @@ function Consent() {
           <ShieldCheck className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="font-display text-xl font-semibold">Connecter {clientName} à votre compte</h1>
+          <h1 className="font-display text-xl font-semibold">
+            Connecter {clientName} à votre compte
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {clientName} pourra lire et modifier vos tâches et habitudes Flow Day Planner en votre nom.
+            {clientName} pourra lire et modifier vos tâches et habitudes Flow Day Planner en votre
+            nom.
           </p>
         </div>
         {error && (
@@ -87,10 +94,19 @@ function Consent() {
           </p>
         )}
         <div className="flex gap-2">
-          <Button className="flex-1 bg-gradient-primary shadow-glow" disabled={busy} onClick={() => decide(true)}>
+          <Button
+            className="flex-1 bg-gradient-primary shadow-glow"
+            disabled={busy}
+            onClick={() => decide(true)}
+          >
             Autoriser
           </Button>
-          <Button variant="outline" className="flex-1" disabled={busy} onClick={() => decide(false)}>
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={busy}
+            onClick={() => decide(false)}
+          >
             Refuser
           </Button>
         </div>

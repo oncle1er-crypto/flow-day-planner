@@ -2,11 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, Timer, Coffee, CheckCircle2 } from "lucide-react";
 import { useTasks } from "@/hooks/use-tasks";
-import { useCreateFocusSession, useFocusSessions, type FocusKind } from "@/hooks/use-focus-sessions";
+import {
+  useCreateFocusSession,
+  useFocusSessions,
+  type FocusKind,
+} from "@/hooks/use-focus-sessions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -19,7 +29,9 @@ const PRESETS: Record<FocusKind, { label: string; minutes: number; icon: typeof 
 };
 
 function fmt(s: number) {
-  const m = Math.floor(s / 60).toString().padStart(2, "0");
+  const m = Math.floor(s / 60)
+    .toString()
+    .padStart(2, "0");
   const r = (s % 60).toString().padStart(2, "0");
   return `${m}:${r}`;
 }
@@ -113,7 +125,9 @@ function FocusPage() {
 
   const todayStats = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    const todays = sessions.filter((s) => s.started_at.slice(0, 10) === today && s.kind === "focus");
+    const todays = sessions.filter(
+      (s) => s.started_at.slice(0, 10) === today && s.kind === "focus",
+    );
     const totalSec = todays.reduce((a, s) => a + s.actual_seconds, 0);
     return { count: todays.length, minutes: Math.round(totalSec / 60) };
   }, [sessions]);
@@ -167,7 +181,12 @@ function FocusPage() {
               <Play className="h-4 w-4" /> Démarrer
             </Button>
           ) : (
-            <Button onClick={pause} size="lg" variant="secondary" className="rounded-full px-8 gap-2">
+            <Button
+              onClick={pause}
+              size="lg"
+              variant="secondary"
+              className="rounded-full px-8 gap-2"
+            >
               <Pause className="h-4 w-4" /> Pause
             </Button>
           )}
@@ -175,7 +194,12 @@ function FocusPage() {
             <RotateCcw className="h-4 w-4" />
           </Button>
           {elapsedRef.current >= 5 && (
-            <Button onClick={() => finish(false)} size="lg" variant="ghost" className="rounded-full gap-2">
+            <Button
+              onClick={() => finish(false)}
+              size="lg"
+              variant="ghost"
+              className="rounded-full gap-2"
+            >
               <CheckCircle2 className="h-4 w-4" /> Stop
             </Button>
           )}
@@ -197,11 +221,15 @@ function FocusPage() {
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">Tâche liée</label>
             <Select value={taskId} onValueChange={setTaskId} disabled={running}>
-              <SelectTrigger><SelectValue placeholder="Aucune" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Aucune" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Aucune</SelectItem>
                 {tasks.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.title}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -212,7 +240,9 @@ function FocusPage() {
         <div className="rounded-xl border border-border/60 bg-card p-4 flex items-center justify-between">
           <div>
             <div className="text-xs text-muted-foreground">Aujourd'hui</div>
-            <div className="text-lg font-semibold">{todayStats.count} session{todayStats.count > 1 ? "s" : ""}</div>
+            <div className="text-lg font-semibold">
+              {todayStats.count} session{todayStats.count > 1 ? "s" : ""}
+            </div>
           </div>
           <div className="text-right">
             <div className="text-xs text-muted-foreground">Temps focus</div>
@@ -226,17 +256,28 @@ function FocusPage() {
             <h2 className="text-sm font-semibold text-muted-foreground mb-2">Historique récent</h2>
             <ul className="space-y-2">
               {sessions.map((s) => (
-                <li key={s.id} className="rounded-lg border border-border/60 bg-card px-3 py-2 flex items-center justify-between text-sm">
+                <li
+                  key={s.id}
+                  className="rounded-lg border border-border/60 bg-card px-3 py-2 flex items-center justify-between text-sm"
+                >
                   <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "h-2 w-2 rounded-full",
-                      s.kind === "focus" ? "bg-primary" : "bg-muted-foreground/50"
-                    )} />
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full",
+                        s.kind === "focus" ? "bg-primary" : "bg-muted-foreground/50",
+                      )}
+                    />
                     <span className="font-medium">{PRESETS[s.kind].label}</span>
-                    <span className="text-muted-foreground">· {Math.round(s.actual_seconds / 60)} min</span>
+                    <span className="text-muted-foreground">
+                      · {Math.round(s.actual_seconds / 60)} min
+                    </span>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(s.started_at).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(s.started_at).toLocaleString("fr-FR", {
+                      weekday: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </li>
               ))}

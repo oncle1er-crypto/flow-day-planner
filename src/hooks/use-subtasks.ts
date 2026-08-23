@@ -25,10 +25,7 @@ export function useSubtasksByTasks(taskIds: string[]) {
     queryKey: ["subtasks-by-tasks", [...taskIds].sort().join(",")],
     enabled: taskIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("subtasks")
-        .select("*")
-        .in("task_id", taskIds);
+      const { data, error } = await supabase.from("subtasks").select("*").in("task_id", taskIds);
       if (error) throw error;
       const map: Record<string, Subtask[]> = {};
       (data ?? []).forEach((s) => {
@@ -64,10 +61,7 @@ export function useToggleSubtask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; taskId: string; completed: boolean }) => {
-      const { error } = await supabase
-        .from("subtasks")
-        .update({ is_done: completed })
-        .eq("id", id);
+      const { error } = await supabase.from("subtasks").update({ is_done: completed }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, v) => {

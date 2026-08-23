@@ -10,7 +10,12 @@ export default defineTool({
     task_id: z.string().uuid().describe("Identifiant de la tâche."),
     done: z.boolean().default(true).describe("true = terminée, false = à faire."),
   },
-  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
   handler: async ({ task_id, done }, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Non authentifié." }], isError: true };
