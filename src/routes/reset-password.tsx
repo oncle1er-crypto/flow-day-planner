@@ -11,8 +11,8 @@ export const Route = createFileRoute("/reset-password")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Nouveau mot de passe — Smart Daily Tasks" },
-      { name: "description", content: "Définissez un nouveau mot de passe pour votre compte." },
+      { title: "Nouveau mot de passe — Flow Day Planner" },
+      { name: "description", content: "Définissez un nouveau mot de passe pour votre compte Flow Day Planner." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -28,7 +28,6 @@ function ResetPasswordPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Supabase turns the recovery link into a session on this page.
   useEffect(() => {
     let cancelled = false;
     const check = async () => {
