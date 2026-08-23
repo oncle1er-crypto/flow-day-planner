@@ -118,10 +118,31 @@ function wallTimeToUTC(dateStr: string, timeStr: string, tz: string): number | n
 
 // ----- main handler -----
 Deno.serve(async (req) => {
-  const sb = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "content-type": "application/json", "allow": "POST" },
+    });
+  }
+
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const authHeader = req.headers.get("authorization") ?? "";
+  if (!serviceRoleKey || authHeader !== `Bearer ${serviceRoleKey}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  if (!supabaseUrl) {
+    return new Response(JSON.stringify({ error: "Server configuration missing" }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const sb = createClient(supabaseUrl, serviceRoleKey);
 
   const now = new Date();
   const winStart = now.getTime() - 30_000;
@@ -197,8 +218,6 @@ Deno.serve(async (req) => {
   }
 
   // Notifications in-app : une ligne par rappel réellement dispatché.
-  // dedupe_key (minute) est partagé avec le push => aucun doublon entre les deux canaux,
-  // et la ligne est créée même si l'utilisateur n'a aucun abonnement push.
   if (toSend.length > 0) {
     const rows = toSend.map((d) => ({
       user_id: d.user_id,
