@@ -11,8 +11,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Connexion — Smart Daily Tasks" },
-      { name: "description", content: "Connectez-vous pour organiser vos tâches, habitudes et objectifs." },
+      { title: "Connexion — Flow Day Planner" },
+      { name: "description", content: "Connectez-vous à Flow Day Planner pour organiser vos tâches, habitudes et objectifs." },
     ],
   }),
   beforeLoad: async () => {
@@ -86,7 +86,7 @@ function AuthPage() {
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-primary shadow-glow mb-4">
             <Sparkles className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="font-display text-3xl font-bold">Smart Daily Tasks</h1>
+          <h1 className="font-display text-3xl font-bold">Flow Day Planner</h1>
           <p className="text-muted-foreground mt-1">Votre journée, organisée intelligemment.</p>
         </div>
 
