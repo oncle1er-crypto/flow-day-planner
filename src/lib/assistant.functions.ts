@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
@@ -15,72 +16,55 @@ type ParsedTask = {
   due_time?: string | null;
 };
 
+// The Lovable runtime is the only host that holds LOVABLE_API_KEY.
+// This server fn (which also runs on Vercel) proxies to it server-to-server,
+// forwarding the caller's own bearer token so the proxy re-verifies identity.
+const AI_PROXY_URL = "https://tache-daily.lovable.app/api/public/ai-assistant";
+
 export const askAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("Lovable AI non configurée");
+  .handler(async ({ data }) => {
+    const authHeader = getRequestHeader("authorization");
+    if (!authHeader) throw new Error("Session expirée. Reconnectez-vous.");
 
-    const today = new Date().toISOString().slice(0, 10);
-    // Pull a brief context of today's tasks
-    const { data: tasks } = await context.supabase
-      .from("tasks")
-      .select("title, status, priority, due_date, due_time")
-      .eq("is_archived", false)
-      .order("due_date", { ascending: true })
-      .limit(40);
-
-    const sys =
-      data.mode === "parse_tasks"
-        ? `Tu es un assistant qui extrait des tâches d'un texte en français. Renvoie STRICTEMENT un JSON {"tasks":[{"title":"...","description":"...","priority":"low|normal|high|urgent","due_date":"YYYY-MM-DD"|null,"due_time":"HH:MM"|null}]}. Date du jour: ${today}. Pas de markdown, pas d'explication, juste le JSON.`
-        : data.mode === "plan_day"
-          ? `Tu es un coach de productivité bienveillant. Donne en français un plan concis pour la journée basé sur les tâches existantes. Maximum 5 puces courtes. Pas de JSON.`
-          : `Tu es un coach de productivité. Fais un court bilan motivant en français basé sur les tâches. Maximum 4 phrases.`;
-
-    const userMsg =
-      data.mode === "parse_tasks"
-        ? data.prompt
-        : `Tâches actuelles (JSON): ${JSON.stringify(tasks ?? [])}\n\nQuestion utilisateur: ${data.prompt}`;
-
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": key,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: sys },
-          { role: "user", content: userMsg },
-        ],
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("[assistant] AI gateway error", res.status, text);
+    let res: Response;
+    try {
+      res = await fetch(AI_PROXY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authHeader,
+        },
+        body: JSON.stringify({ prompt: data.prompt, mode: data.mode }),
+      });
+    } catch (e) {
+      console.error("[assistant] proxy network error", String(e));
       throw new Error("Le service AI est temporairement indisponible. Veuillez réessayer.");
     }
-    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const content = json.choices?.[0]?.message?.content ?? "";
 
-    if (data.mode === "parse_tasks") {
-      // Try to extract JSON block
-      const match = content.match(/\{[\s\S]*\}/);
-      let parsed: { tasks: ParsedTask[] } = { tasks: [] };
-      if (match) {
-        try {
-          parsed = JSON.parse(match[0]);
-        } catch {
-          parsed = { tasks: [] };
-        }
-      }
-      return { mode: "parse_tasks" as const, tasks: parsed.tasks ?? [], raw: content };
+    const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+
+    if (!res.ok) {
+      console.error("[assistant] proxy error", res.status);
+      const msg =
+        typeof payload?.["error"] === "string"
+          ? (payload["error"] as string)
+          : "Le service AI est temporairement indisponible. Veuillez réessayer.";
+      throw new Error(msg);
     }
 
-    return { mode: data.mode, message: content };
+    if (data.mode === "parse_tasks") {
+      const tasks = Array.isArray(payload?.["tasks"]) ? (payload["tasks"] as ParsedTask[]) : [];
+      const raw = typeof payload?.["raw"] === "string" ? (payload["raw"] as string) : "";
+      return { mode: "parse_tasks" as const, tasks, raw };
+    }
+
+    const message = typeof payload?.["message"] === "string" ? (payload["message"] as string) : "";
+    if (!message) throw new Error("Réponse AI invalide. Veuillez réessayer.");
+    return { mode: data.mode, message };
   });
+
 
 const CreateBatchSchema = z.object({
   tasks: z.array(
