@@ -118,10 +118,24 @@ function wallTimeToUTC(dateStr: string, timeStr: string, tz: string): number | n
 
 // ----- main handler -----
 Deno.serve(async (req) => {
+  const json = (body: unknown, status: number) =>
+    new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+
+  if (req.method !== "POST") {
+    return json({ error: "Method not allowed" }, 405);
+  }
+
+  const cronSecret = Deno.env.get("PUSH_REMINDERS_CRON_SECRET");
+  const provided = req.headers.get("x-cron-secret");
+  if (!cronSecret || provided !== cronSecret) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+
   const sb = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+
 
   const now = new Date();
   const winStart = now.getTime() - 30_000;
