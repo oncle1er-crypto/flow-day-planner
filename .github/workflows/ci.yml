@@ -19,8 +19,8 @@ jobs:
       # Never place service_role/secret keys in this workflow.
       VITE_SUPABASE_URL: https://sjdhvzjaqarlqcqpkfzd.supabase.co
       SUPABASE_URL: https://sjdhvzjaqarlqcqpkfzd.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqZGh2emphcWFybHFjcXBrZnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzk5OTAsImV4cCI6MjA5NzUxNTk5MH0.axZ9NV9_3WzO6HW0MOAOSZjKydjyoHCWWxQyMlA1sGM
-      SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqZGh2emphcWFybHFjcXBrZnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzk5OTAsImV4cCI6MjA5NzUxNTk5MH0.axZ9NV9_3WzO6HW0MOAOSZjKydjyoHCWWxQyMlA1sGM
+      VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InNqZGh2emphcWFybHFjcXBrZnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzk5OTAsImV4cCI6MjA5NzUxNTk5MH0.axZ9NV9_3WzO6HW0MOAOSZjKydjyoHCWWxQyMlA1sGM
+      SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InNqZGh2emphcWFybHFjcXBrZnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzk5OTAsImV4cCI6MjA5NzUxNTk5MH0.axZ9NV9_3WzO6HW0MOAOSZjKydjyoHCWWxQyMlA1sGM
 
     steps:
       - name: Checkout
@@ -30,12 +30,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
-      # Le package-lock.json historique de Lovable est actuellement désynchronisé
-      # du package.json. On valide d'abord le code avec la résolution déclarée
-      # dans package.json, sans réécrire le lockfile dans la CI.
       - name: Install dependencies
-        run: npm install --no-package-lock --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Typecheck
         run: npm run typecheck
