@@ -634,7 +634,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      sync_my_achievements: {
+        Args: never
+        Returns: {
+          achievement_key: string
+        }[]
+      }
     }
     Enums: {
       focus_kind: "focus" | "short_break" | "long_break"
