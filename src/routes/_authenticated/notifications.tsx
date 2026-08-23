@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/notifications")({ component: NotifPage });
 
 function NotifPage() {
-  const { data: items = [] } = useNotifications();
+  const { data: items = [], isLoading, isError, error, refetch } = useNotifications();
   const markRead = useMarkRead();
   const markAll = useMarkAllRead();
   const unread = items.filter((n) => !n.is_read).length;
