@@ -12,7 +12,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Connexion — Flow Day Planner" },
-      { name: "description", content: "Connectez-vous pour organiser vos tâches, habitudes et objectifs." },
+      {
+        name: "description",
+        content: "Connectez-vous pour organiser vos tâches, habitudes et objectifs.",
+      },
     ],
   }),
   validateSearch: (s: Record<string, unknown>): { next?: string } =>
@@ -119,7 +122,8 @@ function AuthPage() {
             <div className="space-y-4 text-center">
               <MailCheck className="mx-auto h-8 w-8 text-primary" />
               <p className="text-sm text-muted-foreground">
-                Si un compte existe pour <span className="font-medium text-foreground">{email}</span>, un lien de
+                Si un compte existe pour{" "}
+                <span className="font-medium text-foreground">{email}</span>, un lien de
                 réinitialisation vient d'être envoyé. Vérifiez aussi vos spams.
               </p>
               <Button variant="ghost" className="w-full" onClick={() => switchMode("signin")}>
@@ -130,29 +134,65 @@ function AuthPage() {
             <form onSubmit={handleEmail} className="space-y-3">
               {mode === "forgot" && (
                 <p className="text-sm text-muted-foreground">
-                  Entrez votre email, nous vous enverrons un lien pour définir un nouveau mot de passe.
+                  Entrez votre email, nous vous enverrons un lien pour définir un nouveau mot de
+                  passe.
                 </p>
               )}
               {mode === "signup" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Nom complet</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" />
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Jean Dupont"
+                  />
                 </div>
               )}
               <div className="space-y-1.5">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" />
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="vous@exemple.com"
+                />
               </div>
               {mode !== "forgot" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
               )}
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" disabled={loading} className="w-full h-11 bg-gradient-primary shadow-glow">
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                {mode === "forgot" ? "Envoyer le lien" : mode === "signup" ? "Créer mon compte" : "Se connecter"}
+              {error && (
+                <p role="alert" className="text-sm text-destructive">
+                  {error}
+                </p>
+              )}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 bg-gradient-primary shadow-glow"
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                )}
+                {mode === "forgot"
+                  ? "Envoyer le lien"
+                  : mode === "signup"
+                    ? "Créer mon compte"
+                    : "Se connecter"}
               </Button>
               <button
                 type="button"
