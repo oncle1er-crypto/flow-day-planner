@@ -13,11 +13,11 @@ export function useTimezoneSync() {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (!timezone) return;
 
-      const cached = window.localStorage.getItem(STORAGE_KEY);
-      if (cached === timezone) return;
-
       const { data: auth, error: authError } = await supabase.auth.getUser();
       if (authError || !auth.user || cancelled) return;
+
+      const cacheKey = `${STORAGE_KEY}:${auth.user.id}`;
+      if (window.localStorage.getItem(cacheKey) === timezone) return;
 
       const { data: settings, error: readError } = await supabase
         .from("user_settings")
@@ -34,7 +34,7 @@ export function useTimezoneSync() {
         if (updateError || cancelled) return;
       }
 
-      window.localStorage.setItem(STORAGE_KEY, timezone);
+      window.localStorage.setItem(cacheKey, timezone);
     };
 
     void sync();
