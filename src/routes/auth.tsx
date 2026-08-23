@@ -15,9 +15,12 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Connectez-vous pour organiser vos tâches, habitudes et objectifs." },
     ],
   }),
-  beforeLoad: async () => {
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+  }),
+  beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/today" });
+    if (data.user) throw redirect(search.next ? { href: search.next } : { to: "/today" });
   },
   component: AuthPage,
 });
@@ -26,6 +29,8 @@ type Mode = "signin" | "signup" | "forgot";
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const returnTo = next ?? "/today";
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
