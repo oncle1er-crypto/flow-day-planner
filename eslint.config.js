@@ -61,8 +61,9 @@ export default tseslint.config(
   },
   {
     files: [
-      "src/routes/[.mcp]/**/*.ts",
-      "src/routes/[.well-known]/**/*.ts",
+      "src/routes/**/invoke-tool/*.ts",
+      "src/routes/**/list-tools.ts",
+      "src/routes/**/oauth-protected-resource.ts",
       "src/routes/mcp.ts",
       "src/routes/[.]lovable.oauth.consent.tsx",
     ],
