@@ -19,8 +19,6 @@ import {
   Trophy,
 } from "lucide-react";
 import { useGamification } from "@/hooks/use-gamification";
-import { useState } from "react";
-import { TaskFormDialog } from "@/components/app/TaskFormDialog";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
@@ -38,7 +36,6 @@ function Dashboard() {
   const { data: todayTasks = [] } = useTasks({ dueOn: today });
   const { data: allTasks = [] } = useTasks();
   const { data: categories = [] } = useCategories();
-  const [openNew, setOpenNew] = useState(false);
   const { xp, level } = useGamification();
 
   const done = todayTasks.filter((t) => t.status === "done").length;
@@ -52,7 +49,6 @@ function Dashboard() {
   return (
     <AppShell title={greetingForNow(profile?.full_name)} subtitle={fmtDate(new Date())}>
       <div className="space-y-6 pt-4">
-        {/* Progress card */}
         <div className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-soft">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -61,13 +57,12 @@ function Dashboard() {
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold">{progress}%</p>
-              <div className="flex items-center gap-1 text-xs opacity-80 mt-1"><Trophy className="h-3 w-3" /> Niv. {level} · {xp} XP</div>
+              <div className="flex items-center gap-1 text-xs opacity-80 mt-1"><Trophy className="h-3 w-3" /> Niv. {level.level} · {xp} XP</div>
             </div>
           </div>
           <Progress value={progress} className="h-2 bg-primary-foreground/20" />
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <Link to="/today" className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow">
             <ListChecks className="h-5 w-5 mx-auto mb-1 text-primary" />
@@ -86,7 +81,6 @@ function Dashboard() {
           </Link>
         </div>
 
-        {/* Upcoming */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-lg flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> À venir</h2>
@@ -105,14 +99,12 @@ function Dashboard() {
           )}
         </section>
 
-        {/* Quote */}
         <div className="rounded-xl bg-accent/50 p-4 flex gap-3 items-start">
           <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
           <p className="text-sm italic text-muted-foreground">« {quote} »</p>
         </div>
       </div>
-      <FloatingActionButton onClick={() => setOpenNew(true)} />
-      <TaskFormDialog open={openNew} onOpenChange={setOpenNew} />
+      <FloatingActionButton />
     </AppShell>
   );
 }
