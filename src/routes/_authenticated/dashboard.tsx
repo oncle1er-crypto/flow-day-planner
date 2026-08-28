@@ -43,7 +43,7 @@ function Dashboard() {
 
   const done = todayTasks.filter((t) => t.status === "done").length;
   const total = todayTasks.length;
-  const overdue = allTasks.filter(isOverdue).length;
+  const overdue = allTasks.filter((t) => isOverdue(t)).length;
   const urgent = todayTasks.filter((t) => t.priority === "urgent" && t.status !== "done").length;
   const progress = total ? Math.round((done / total) * 100) : 0;
   const upcoming = todayTasks.filter((t) => t.status !== "done").slice(0, 3);
@@ -53,154 +53,66 @@ function Dashboard() {
     <AppShell title={greetingForNow(profile?.full_name)} subtitle={fmtDate(new Date())}>
       <div className="space-y-6 pt-4">
         {/* Progress card */}
-        <section className="rounded-3xl bg-gradient-card border border-border p-6 shadow-card relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-hero pointer-events-none" />
-          <div className="relative">
-            <div className="flex items-baseline justify-between mb-3">
-              <div>
-                <p className="text-sm text-muted-foreground">Progression du jour</p>
-                <p className="font-display text-4xl font-bold mt-1">
-                  {progress}
-                  <span className="text-2xl text-muted-foreground">%</span>
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">Terminées</p>
-                <p className="font-display text-2xl font-semibold">
-                  {done}
-                  <span className="text-muted-foreground text-base">/{total}</span>
-                </p>
-              </div>
+        <div className="rounded-2xl bg-primary p-5 text-primary-foreground shadow-soft">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm opacity-80">Progression du jour</p>
+              <p className="text-2xl font-bold">{done}/{total} tâches</p>
             </div>
-            <Progress value={progress} className="h-2" />
+            <div className="text-right">
+              <p className="text-3xl font-bold">{progress}%</p>
+              <div className="flex items-center gap-1 text-xs opacity-80 mt-1"><Trophy className="h-3 w-3" /> Niv. {level} · {xp} XP</div>
+            </div>
           </div>
-        </section>
+          <Progress value={progress} className="h-2 bg-primary-foreground/20" />
+        </div>
 
-        {/* Stats grid */}
-        <section className="grid grid-cols-2 gap-3">
-          <StatTile icon={ListChecks} label="Aujourd'hui" value={total} tint="primary" />
-          <StatTile icon={Flame} label="Urgentes" value={urgent} tint="warning" />
-          <StatTile icon={AlertTriangle} label="En retard" value={overdue} tint="destructive" />
-          <StatTile icon={CheckCircle2} label="Terminées" value={done} tint="success" />
-        </section>
-
-        {/* Quick actions */}
-        <section className="grid grid-cols-3 gap-3">
-          <QuickAction icon={ListChecks} label="Tâche" onClick={() => setOpenNew(true)} />
-          <Link to="/calendar" className="contents">
-            <QuickAction icon={CalendarDays} label="Agenda" />
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <Link to="/today" className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow">
+            <ListChecks className="h-5 w-5 mx-auto mb-1 text-primary" />
+            <p className="text-xl font-bold">{total}</p>
+            <p className="text-[11px] text-muted-foreground">Aujourd'hui</p>
           </Link>
-          <Link to="/assistant" className="contents">
-            <QuickAction icon={Sparkles} label="Planifier" />
+          <Link to="/today" className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow">
+            <AlertTriangle className="h-5 w-5 mx-auto mb-1 text-destructive" />
+            <p className="text-xl font-bold">{overdue}</p>
+            <p className="text-[11px] text-muted-foreground">En retard</p>
           </Link>
-        </section>
-
-        {/* Level card */}
-        <Link
-          to="/achievements"
-          className="block rounded-2xl border border-border bg-card/60 p-4 shadow-card hover:bg-card transition"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-xl bg-gradient-primary shadow-glow grid place-items-center text-primary-foreground">
-              <Trophy className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="font-display font-semibold">Niveau {level.level}</p>
-                <p className="text-xs text-muted-foreground">{xp} XP</p>
-              </div>
-              <div className="mt-2">
-                <Progress value={level.progressPct} className="h-1.5" />
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                {level.xpInLevel}/{level.xpForNext} XP → niveau {level.level + 1}
-              </p>
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          </div>
-        </Link>
+          <Link to="/today" className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow">
+            <Flame className="h-5 w-5 mx-auto mb-1 text-warning" />
+            <p className="text-xl font-bold">{urgent}</p>
+            <p className="text-[11px] text-muted-foreground">Urgentes</p>
+          </Link>
+        </div>
 
         {/* Upcoming */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display font-semibold text-lg">À traiter maintenant</h2>
-            <Link to="/today" className="text-sm text-primary inline-flex items-center gap-1">
-              Voir tout <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            <h2 className="font-semibold text-lg flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> À venir</h2>
+            <Button variant="ghost" size="sm" asChild><Link to="/today">Voir tout <ArrowRight className="h-4 w-4 ml-1" /></Link></Button>
           </div>
-          <div className="space-y-2">
-            {upcoming.length === 0 ? (
-              <div className="rounded-2xl border border-border bg-card/40 p-6 text-center">
-                <p className="text-sm text-muted-foreground">Vous êtes à jour. Bravo !</p>
-                <Button variant="link" onClick={() => setOpenNew(true)}>
-                  Ajouter une tâche
-                </Button>
-              </div>
-            ) : (
-              upcoming.map((t) => <TaskCard key={t.id} task={t} categories={categories} />)
-            )}
-          </div>
+          {upcoming.length === 0 ? (
+            <div className="rounded-xl bg-card p-6 text-center shadow-card">
+              <CheckCircle2 className="h-8 w-8 mx-auto text-success mb-2" />
+              <p className="font-medium">Tout est fait !</p>
+              <p className="text-sm text-muted-foreground">Profitez de votre temps libre.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {upcoming.map((task) => <TaskCard key={task.id} task={task} categories={categories} />)}
+            </div>
+          )}
         </section>
 
         {/* Quote */}
-        <section className="rounded-2xl border border-border bg-card/60 p-5">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Citation du jour
-          </p>
-          <p className="font-display text-base leading-relaxed">"{quote}"</p>
-        </section>
+        <div className="rounded-xl bg-accent/50 p-4 flex gap-3 items-start">
+          <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+          <p className="text-sm italic text-muted-foreground">« {quote} »</p>
+        </div>
       </div>
-
+      <FloatingActionButton onClick={() => setOpenNew(true)} />
       <TaskFormDialog open={openNew} onOpenChange={setOpenNew} />
-      <FloatingActionButton />
     </AppShell>
-  );
-}
-
-function StatTile({
-  icon: Icon,
-  label,
-  value,
-  tint,
-}: {
-  icon: typeof ListChecks;
-  label: string;
-  value: number;
-  tint: "primary" | "warning" | "destructive" | "success";
-}) {
-  const tintClass = {
-    primary: "text-primary bg-primary/10",
-    warning: "text-warning bg-warning/10",
-    destructive: "text-destructive bg-destructive/10",
-    success: "text-success bg-success/10",
-  }[tint];
-  return (
-    <div className="rounded-2xl border border-border bg-card/60 p-4 shadow-card">
-      <div className={`h-9 w-9 rounded-xl grid place-items-center ${tintClass} mb-3`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <p className="font-display text-2xl font-bold leading-none">{value}</p>
-      <p className="text-xs text-muted-foreground mt-1">{label}</p>
-    </div>
-  );
-}
-
-function QuickAction({
-  icon: Icon,
-  label,
-  onClick,
-}: {
-  icon: typeof ListChecks;
-  label: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-2xl border border-border bg-card/40 p-4 text-center hover:border-primary/40 hover:bg-card/80 transition active:scale-95"
-    >
-      <Icon className="h-5 w-5 text-primary mx-auto mb-1.5" />
-      <p className="text-xs font-medium">{label}</p>
-    </button>
   );
 }
