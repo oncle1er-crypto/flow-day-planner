@@ -8,9 +8,6 @@ import { EmptyState } from "@/components/app/EmptyState";
 import { fmtDate, todayISO } from "@/lib/dates";
 import { isOverdue } from "@/lib/task-utils";
 import { ListChecks, AlertTriangle, CheckCircle2, Flame } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { TaskFormDialog } from "@/components/app/TaskFormDialog";
 
 export const Route = createFileRoute("/_authenticated/today")({ component: TodayPage });
 
@@ -19,7 +16,6 @@ function TodayPage() {
   const { data: tasks = [], isLoading } = useTasks({ dueOn: today });
   const { data: all = [] } = useTasks();
   const { data: categories = [] } = useCategories();
-  const [open, setOpen] = useState(false);
 
   const overdue = all.filter((t) => isOverdue(t));
   const urgent = tasks.filter((t) => t.priority === "urgent" && t.status !== "done");
@@ -56,8 +52,7 @@ function TodayPage() {
           </Section>
         )}
       </div>
-      <FloatingActionButton onClick={() => setOpen(true)} />
-      <TaskFormDialog open={open} onOpenChange={setOpen} />
+      <FloatingActionButton />
     </AppShell>
   );
 }
