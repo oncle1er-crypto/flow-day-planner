@@ -7,10 +7,10 @@ import { AppShell } from "@/components/app/AppShell";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import {
+  changeFinancePin,
   hasFinancePin,
   isValidFinancePin,
   setFinancePin,
-  verifyFinancePin,
 } from "@/lib/finance-security";
 
 export const Route = createFileRoute("/_authenticated/finance-security")({
@@ -67,22 +67,18 @@ function FinanceSecurityPage() {
       toast.error("Les deux nouveaux codes ne correspondent pas");
       return;
     }
+    if (configured && !isValidFinancePin(currentPin)) {
+      toast.error("Saisissez votre code actuel");
+      return;
+    }
+
     setSaving(true);
     try {
       if (configured) {
-        const result = await verifyFinancePin(currentPin);
-        if (!result.ok) {
-          if (result.reason === "locked") {
-            toast.error("Trop de tentatives. Réessayez dans 15 minutes.");
-          } else {
-            toast.error(
-              `Code actuel incorrect${result.remaining_attempts !== undefined ? ` · ${result.remaining_attempts} tentative(s) restante(s)` : ""}`,
-            );
-          }
-          return;
-        }
+        await changeFinancePin(currentPin, newPin);
+      } else {
+        await setFinancePin(newPin);
       }
-      await setFinancePin(newPin);
       setCurrentPin("");
       setNewPin("");
       setConfirmPin("");
@@ -112,7 +108,7 @@ function FinanceSecurityPage() {
           </div>
           <p className="text-xs text-muted-foreground">
             Après 5 erreurs, l'accès est bloqué pendant 15 minutes. Une ouverture réussie reste
-            déverrouillée 10 minutes sur cet appareil.
+            déverrouillée 10 minutes, côté application et côté base de données.
           </p>
         </section>
 
