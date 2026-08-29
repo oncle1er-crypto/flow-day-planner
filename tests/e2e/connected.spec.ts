@@ -30,6 +30,8 @@ test.describe("connected regression suite", () => {
       "/notifications",
       "/settings",
       "/profile",
+      "/finance",
+      "/finance-security",
     ]) {
       const response = await page.goto(path);
       expect(response?.status(), `${path} should load successfully`).toBeLessThan(400);
