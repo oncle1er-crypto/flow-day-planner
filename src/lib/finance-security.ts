@@ -59,12 +59,6 @@ export async function verifyFinancePin(pin: string): Promise<PinVerification> {
   return result;
 }
 
-export async function lockFinanceAccess() {
-  const { error } = await financeApi.rpc("lock_finance");
-  lockFinanceSession();
-  if (error) throw new Error(error.message);
-}
-
 export function isFinanceSessionUnlocked() {
   if (typeof window === "undefined") return false;
   const unlockedUntil = Number(sessionStorage.getItem(UNLOCK_KEY) ?? 0);
@@ -82,5 +76,7 @@ export function unlockFinanceSession() {
 }
 
 export function lockFinanceSession() {
-  if (typeof window !== "undefined") sessionStorage.removeItem(UNLOCK_KEY);
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(UNLOCK_KEY);
+  void financeApi.rpc("lock_finance");
 }
