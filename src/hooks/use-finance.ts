@@ -16,9 +16,10 @@ export type NewObligation = {
   due_date?: string;
 };
 
-export function useFinancialObligations() {
+export function useFinancialObligations(enabled = true) {
   return useQuery<FinancialObligation[]>({
     queryKey: ["financial-obligations"],
+    enabled,
     queryFn: async () => {
       const { data, error } = await financeDb
         .from("financial_obligation_balances")
