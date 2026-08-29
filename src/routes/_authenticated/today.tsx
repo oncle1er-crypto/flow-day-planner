@@ -34,21 +34,29 @@ function TodayPage() {
         )}
         {urgent.length > 0 && (
           <Section title="Urgent" icon={Flame} tone="warning" count={urgent.length}>
-            {urgent.map((t) => <TaskCard key={t.id} task={t} categories={categories} />)}
+            {urgent.map((t) => (
+              <TaskCard key={t.id} task={t} categories={categories} />
+            ))}
           </Section>
         )}
         <Section title="À faire" icon={ListChecks} count={todo.length}>
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Chargement…</p>
           ) : todo.length === 0 ? (
-            <EmptyState icon={CheckCircle2} title="Tout est fait !" description="Aucune tâche à faire aujourd'hui." />
+            <EmptyState
+              icon={CheckCircle2}
+              title="Tout est fait !"
+              description="Aucune tâche à faire aujourd'hui."
+            />
           ) : (
             todo.map((t) => <TaskCard key={t.id} task={t} categories={categories} />)
           )}
         </Section>
         {done.length > 0 && (
           <Section title="Terminées" icon={CheckCircle2} count={done.length}>
-            {done.map((t) => <TaskCard key={t.id} task={t} categories={categories} />)}
+            {done.map((t) => (
+              <TaskCard key={t.id} task={t} categories={categories} />
+            ))}
           </Section>
         )}
       </div>
@@ -57,13 +65,29 @@ function TodayPage() {
   );
 }
 
-function Section({ title, icon: Icon, count, children, tone }: { title: string; icon: React.ElementType; count: number; children: React.ReactNode; tone?: string }) {
+function Section({
+  title,
+  icon: Icon,
+  count,
+  children,
+  tone,
+}: {
+  title: string;
+  icon: React.ElementType;
+  count: number;
+  children: React.ReactNode;
+  tone?: string;
+}) {
   return (
     <section>
       <div className="flex items-center gap-2 mb-3">
-        <Icon className={`h-5 w-5 ${tone === "destructive" ? "text-destructive" : tone === "warning" ? "text-warning" : "text-primary"}`} />
+        <Icon
+          className={`h-5 w-5 ${tone === "destructive" ? "text-destructive" : tone === "warning" ? "text-warning" : "text-primary"}`}
+        />
         <h2 className="font-semibold text-lg">{title}</h2>
-        <span className="text-xs bg-muted rounded-full px-2 py-0.5 text-muted-foreground">{count}</span>
+        <span className="text-xs bg-muted rounded-full px-2 py-0.5 text-muted-foreground">
+          {count}
+        </span>
       </div>
       <div className="space-y-2">{children}</div>
     </section>
