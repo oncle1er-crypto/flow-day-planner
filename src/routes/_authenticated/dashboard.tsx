@@ -53,28 +53,41 @@ function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-sm opacity-80">Progression du jour</p>
-              <p className="text-2xl font-bold">{done}/{total} tâches</p>
+              <p className="text-2xl font-bold">
+                {done}/{total} tâches
+              </p>
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold">{progress}%</p>
-              <div className="flex items-center gap-1 text-xs opacity-80 mt-1"><Trophy className="h-3 w-3" /> Niv. {level.level} · {xp} XP</div>
+              <div className="flex items-center gap-1 text-xs opacity-80 mt-1">
+                <Trophy className="h-3 w-3" /> Niv. {level.level} · {xp} XP
+              </div>
             </div>
           </div>
           <Progress value={progress} className="h-2 bg-primary-foreground/20" />
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <Link to="/today" className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow">
+          <Link
+            to="/today"
+            className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow"
+          >
             <ListChecks className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className="text-xl font-bold">{total}</p>
             <p className="text-[11px] text-muted-foreground">Aujourd'hui</p>
           </Link>
-          <Link to="/today" className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow">
+          <Link
+            to="/today"
+            className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow"
+          >
             <AlertTriangle className="h-5 w-5 mx-auto mb-1 text-destructive" />
             <p className="text-xl font-bold">{overdue}</p>
             <p className="text-[11px] text-muted-foreground">En retard</p>
           </Link>
-          <Link to="/today" className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow">
+          <Link
+            to="/today"
+            className="rounded-xl bg-card p-3 text-center shadow-card hover:shadow-soft transition-shadow"
+          >
             <Flame className="h-5 w-5 mx-auto mb-1 text-warning" />
             <p className="text-xl font-bold">{urgent}</p>
             <p className="text-[11px] text-muted-foreground">Urgentes</p>
@@ -83,8 +96,14 @@ function Dashboard() {
 
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-lg flex items-center gap-2"><CalendarDays className="h-5 w-5 text-primary" /> À venir</h2>
-            <Button variant="ghost" size="sm" asChild><Link to="/today">Voir tout <ArrowRight className="h-4 w-4 ml-1" /></Link></Button>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-primary" /> À venir
+            </h2>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/today">
+                Voir tout <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
           </div>
           {upcoming.length === 0 ? (
             <div className="rounded-xl bg-card p-6 text-center shadow-card">
@@ -94,7 +113,9 @@ function Dashboard() {
             </div>
           ) : (
             <div className="space-y-2">
-              {upcoming.map((task) => <TaskCard key={task.id} task={task} categories={categories} />)}
+              {upcoming.map((task) => (
+                <TaskCard key={task.id} task={task} categories={categories} />
+              ))}
             </div>
           )}
         </section>
