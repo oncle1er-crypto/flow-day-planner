@@ -4,8 +4,19 @@ import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Settings, LogOut, ListChecks, Bell, User, ChevronRight, Trophy } from "lucide-react";
+import {
+  Settings,
+  LogOut,
+  ListChecks,
+  Bell,
+  User,
+  ChevronRight,
+  Trophy,
+  WalletCards,
+  LockKeyhole,
+} from "lucide-react";
 import { toast } from "sonner";
+import { lockFinanceSession } from "@/lib/finance-security";
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: ProfilePage });
 
@@ -17,6 +28,7 @@ function ProfilePage() {
   const handleSignOut = async () => {
     await qc.cancelQueries();
     qc.clear();
+    lockFinanceSession();
     await supabase.auth.signOut();
     toast.success("Déconnecté");
     navigate({ to: "/auth", replace: true });
@@ -51,6 +63,8 @@ function ProfilePage() {
         </div>
 
         <nav className="space-y-2">
+          <Row to="/finance" icon={WalletCards} label="Dettes & créances" />
+          <Row to="/finance-security" icon={LockKeyhole} label="Code secret Finances" />
           <Row to="/achievements" icon={Trophy} label="Récompenses & badges" />
           <Row to="/tasks" icon={ListChecks} label="Toutes les tâches" />
           <Row to="/notifications" icon={Bell} label="Notifications" />
@@ -75,7 +89,13 @@ function Row({
   icon: Icon,
   label,
 }: {
-  to: "/tasks" | "/notifications" | "/settings" | "/achievements";
+  to:
+    | "/tasks"
+    | "/notifications"
+    | "/settings"
+    | "/achievements"
+    | "/finance"
+    | "/finance-security";
   icon: typeof Settings;
   label: string;
 }) {

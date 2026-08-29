@@ -24,6 +24,8 @@ import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedFocusRouteImport } from './routes/_authenticated/focus'
+import { Route as AuthenticatedFinanceSecurityRouteImport } from './routes/_authenticated/finance-security'
+import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
@@ -109,6 +111,17 @@ const AuthenticatedFocusRoute = AuthenticatedFocusRouteImport.update({
   path: '/focus',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFinanceSecurityRoute =
+  AuthenticatedFinanceSecurityRouteImport.update({
+    id: '/finance-security',
+    path: '/finance-security',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -171,6 +184,8 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AuthenticatedAssistantRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/finance': typeof AuthenticatedFinanceRoute
+  '/finance-security': typeof AuthenticatedFinanceSecurityRoute
   '/focus': typeof AuthenticatedFocusRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/habits': typeof AuthenticatedHabitsRoute
@@ -196,6 +211,8 @@ export interface FileRoutesByTo {
   '/assistant': typeof AuthenticatedAssistantRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/finance': typeof AuthenticatedFinanceRoute
+  '/finance-security': typeof AuthenticatedFinanceSecurityRoute
   '/focus': typeof AuthenticatedFocusRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/habits': typeof AuthenticatedHabitsRoute
@@ -223,6 +240,8 @@ export interface FileRoutesById {
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/finance': typeof AuthenticatedFinanceRoute
+  '/_authenticated/finance-security': typeof AuthenticatedFinanceSecurityRoute
   '/_authenticated/focus': typeof AuthenticatedFocusRoute
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
@@ -250,6 +269,8 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/calendar'
     | '/dashboard'
+    | '/finance'
+    | '/finance-security'
     | '/focus'
     | '/goals'
     | '/habits'
@@ -275,6 +296,8 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/calendar'
     | '/dashboard'
+    | '/finance'
+    | '/finance-security'
     | '/focus'
     | '/goals'
     | '/habits'
@@ -301,6 +324,8 @@ export interface FileRouteTypes {
     | '/_authenticated/assistant'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
+    | '/_authenticated/finance'
+    | '/_authenticated/finance-security'
     | '/_authenticated/focus'
     | '/_authenticated/goals'
     | '/_authenticated/habits'
@@ -436,6 +461,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFocusRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/finance-security': {
+      id: '/_authenticated/finance-security'
+      path: '/finance-security'
+      fullPath: '/finance-security'
+      preLoaderRoute: typeof AuthenticatedFinanceSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/finance': {
+      id: '/_authenticated/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof AuthenticatedFinanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -507,6 +546,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
+  AuthenticatedFinanceSecurityRoute: typeof AuthenticatedFinanceSecurityRoute
   AuthenticatedFocusRoute: typeof AuthenticatedFocusRoute
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
@@ -523,6 +564,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
+  AuthenticatedFinanceSecurityRoute: AuthenticatedFinanceSecurityRoute,
   AuthenticatedFocusRoute: AuthenticatedFocusRoute,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
   AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
