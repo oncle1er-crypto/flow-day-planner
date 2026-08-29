@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const UNLOCK_KEY = "flow-day-finance-unlocked";
+const UNLOCK_KEY = "flow-day-finance-unlocked-until";
+const UNLOCK_DURATION_MS = 10 * 60 * 1000;
 
 type PinVerification = {
   ok: boolean;
@@ -47,11 +48,19 @@ export async function verifyFinancePin(pin: string): Promise<PinVerification> {
 }
 
 export function isFinanceSessionUnlocked() {
-  return typeof window !== "undefined" && sessionStorage.getItem(UNLOCK_KEY) === "1";
+  if (typeof window === "undefined") return false;
+  const unlockedUntil = Number(sessionStorage.getItem(UNLOCK_KEY) ?? 0);
+  if (!Number.isFinite(unlockedUntil) || unlockedUntil <= Date.now()) {
+    lockFinanceSession();
+    return false;
+  }
+  return true;
 }
 
 export function unlockFinanceSession() {
-  if (typeof window !== "undefined") sessionStorage.setItem(UNLOCK_KEY, "1");
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem(UNLOCK_KEY, String(Date.now() + UNLOCK_DURATION_MS));
+  }
 }
 
 export function lockFinanceSession() {
