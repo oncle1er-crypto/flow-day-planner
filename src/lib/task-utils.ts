@@ -32,9 +32,30 @@ export const PRIORITY_COLOR: Record<Priority, string> = {
   urgent: "bg-priority-urgent/15 text-priority-urgent border-priority-urgent/30",
 };
 
-export function isOverdue(t: Pick<Task, "due_date" | "status">) {
-  if (!t.due_date || t.status === "done" || t.status === "cancelled") return false;
-  const today = new Date();
+/**
+ * A task is overdue when its due date/time has passed and it is still actionable.
+ * Date-only tasks become overdue on the following day; timed tasks become overdue
+ * as soon as their local due time passes on the due date.
+ */
+export function isOverdue(
+  t: Pick<Task, "due_date" | "due_time" | "status">,
+  now: Date = new Date(),
+) {
+  if (!t.due_date || t.status === "done" || t.status === "cancelled" || t.status === "postponed") {
+    return false;
+  }
+
+  const [year, month, day] = t.due_date.split("-").map(Number);
+  if (!year || !month || !day) return false;
+
+  if (t.due_time) {
+    const [hours = 0, minutes = 0, seconds = 0] = t.due_time.split(":").map(Number);
+    const dueAt = new Date(year, month - 1, day, hours, minutes, seconds, 0);
+    return dueAt.getTime() < now.getTime();
+  }
+
+  const dueDay = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const today = new Date(now);
   today.setHours(0, 0, 0, 0);
-  return new Date(t.due_date) < today;
+  return dueDay.getTime() < today.getTime();
 }
