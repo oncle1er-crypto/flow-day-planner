@@ -99,11 +99,51 @@ async function getSupabaseAccessToken(page: Page) {
   return token!;
 }
 
-function financeHeaders(accessToken: string) {
+function supabaseHeaders(accessToken: string) {
   return {
     apikey: supabaseKey!,
     Authorization: `Bearer ${accessToken}`,
   };
+}
+
+type TaskApiRow = { id: string; title: string; status: string };
+
+async function findTaskRows(
+  request: APIRequestContext,
+  accessToken: string,
+  title: string,
+): Promise<TaskApiRow[]> {
+  const url = new URL("/rest/v1/tasks", supabaseUrl!);
+  url.searchParams.set("select", "id,title,status");
+  url.searchParams.set("title", `eq.${title}`);
+
+  const response = await request.get(url.toString(), { headers: supabaseHeaders(accessToken) });
+  expect(response.ok(), `Task lookup failed with HTTP ${response.status()}`).toBeTruthy();
+  return (await response.json()) as TaskApiRow[];
+}
+
+async function findTaskById(
+  request: APIRequestContext,
+  accessToken: string,
+  id: string,
+): Promise<TaskApiRow | null> {
+  const url = new URL("/rest/v1/tasks", supabaseUrl!);
+  url.searchParams.set("select", "id,title,status");
+  url.searchParams.set("id", `eq.${id}`);
+
+  const response = await request.get(url.toString(), { headers: supabaseHeaders(accessToken) });
+  expect(response.ok(), `Task lookup failed with HTTP ${response.status()}`).toBeTruthy();
+  const rows = (await response.json()) as TaskApiRow[];
+  return rows[0] ?? null;
+}
+
+async function deleteTaskById(request: APIRequestContext, accessToken: string, id: string) {
+  const url = new URL("/rest/v1/tasks", supabaseUrl!);
+  url.searchParams.set("id", `eq.${id}`);
+
+  const response = await request.delete(url.toString(), { headers: supabaseHeaders(accessToken) });
+  expect(response.status(), "Task cleanup should delete the E2E row").toBe(204);
+  await expect.poll(async () => await findTaskById(request, accessToken, id)).toBeNull();
 }
 
 async function findFinanceRows(
@@ -115,7 +155,7 @@ async function findFinanceRows(
   url.searchParams.set("select", "id,title");
   url.searchParams.set("title", `eq.${title}`);
 
-  const response = await request.get(url.toString(), { headers: financeHeaders(accessToken) });
+  const response = await request.get(url.toString(), { headers: supabaseHeaders(accessToken) });
   expect(response.ok(), `Finance lookup failed with HTTP ${response.status()}`).toBeTruthy();
   return (await response.json()) as Array<{ id: string; title: string }>;
 }
@@ -129,7 +169,7 @@ async function cleanupFinanceRow(
   const url = new URL("/rest/v1/financial_obligations", supabaseUrl!);
   url.searchParams.set("id", `eq.${id}`);
 
-  const response = await request.delete(url.toString(), { headers: financeHeaders(accessToken) });
+  const response = await request.delete(url.toString(), { headers: supabaseHeaders(accessToken) });
   expect(response.status(), "Finance cleanup should delete the test obligation").toBe(204);
   await expect
     .poll(async () => (await findFinanceRows(request, accessToken, title)).length)
@@ -163,34 +203,66 @@ test.describe("connected regression suite", () => {
     }
   });
 
-  test("task CRUD works through the real UI", async ({ page }) => {
+  test("task CRUD works through the real UI and persists on the server", async ({
+    page,
+    request,
+  }) => {
+    test.skip(
+      !supabaseUrl || !supabaseKey,
+      "SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required for task verification",
+    );
+
     await login(page);
+    const accessToken = await getSupabaseAccessToken(page);
     const title = `E2E-GATE-${Date.now()}`;
     const editedTitle = `${title}-EDITED`;
+    let taskId: string | null = null;
 
-    await page.getByRole("button", { name: "Ajouter une tâche" }).last().click();
-    await expect(page.getByRole("heading", { name: "Nouvelle tâche" })).toBeVisible();
-    await page.getByLabel("Titre").fill(title);
-    await page.getByRole("button", { name: "Créer", exact: true }).click();
+    try {
+      await page.getByRole("button", { name: "Ajouter une tâche" }).last().click();
+      await expect(page.getByRole("heading", { name: "Nouvelle tâche" })).toBeVisible();
+      await page.getByLabel("Titre").fill(title);
+      await page.getByRole("button", { name: "Créer", exact: true }).click();
 
-    const card = page.locator("article").filter({ hasText: title }).first();
-    await expect(card).toBeVisible();
+      const card = page.locator("article").filter({ hasText: title }).first();
+      await expect(card).toBeVisible();
+      await expect.poll(async () => (await findTaskRows(request, accessToken, title)).length).toBe(1);
+      taskId = (await findTaskRows(request, accessToken, title))[0].id;
 
-    await card.getByRole("button", { name: "Marquer terminée" }).click();
-    await expect(card.getByRole("button", { name: "Marquer non terminée" })).toBeVisible();
-    await card.getByRole("button", { name: "Marquer non terminée" }).click();
-    await expect(card.getByRole("button", { name: "Marquer terminée" })).toBeVisible();
+      await card.getByRole("button", { name: "Marquer terminée" }).click();
+      await expect
+        .poll(async () => (await findTaskById(request, accessToken, taskId!))?.status)
+        .toBe("done");
+      await expect(card.getByRole("button", { name: "Marquer non terminée" })).toBeVisible();
 
-    await card.getByText(title, { exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Modifier la tâche" })).toBeVisible();
-    await page.getByLabel("Titre").fill(editedTitle);
-    await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+      await card.getByRole("button", { name: "Marquer non terminée" }).click();
+      await expect
+        .poll(async () => (await findTaskById(request, accessToken, taskId!))?.status)
+        .toBe("todo");
+      await expect(card.getByRole("button", { name: "Marquer terminée" })).toBeVisible();
 
-    const editedCard = page.locator("article").filter({ hasText: editedTitle }).first();
-    await expect(editedCard).toBeVisible();
-    await editedCard.getByText(editedTitle, { exact: true }).click();
-    await page.getByRole("button", { name: "Supprimer" }).click();
-    await expect(page.getByText(editedTitle, { exact: true })).toHaveCount(0);
+      await card.getByText(title, { exact: true }).click();
+      await expect(page.getByRole("heading", { name: "Modifier la tâche" })).toBeVisible();
+      const titleInput = page.getByLabel("Titre");
+      await titleInput.fill(editedTitle);
+      await expect(titleInput).toHaveValue(editedTitle);
+      await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+      await expect(page.getByRole("heading", { name: "Modifier la tâche" })).toBeHidden();
+
+      await expect
+        .poll(async () => (await findTaskById(request, accessToken, taskId!))?.title)
+        .toBe(editedTitle);
+
+      await page.goto("/tasks");
+      const editedCard = page.locator("article").filter({ hasText: editedTitle }).first();
+      await expect(editedCard).toBeVisible();
+      await editedCard.getByText(editedTitle, { exact: true }).click();
+      await page.getByRole("button", { name: "Supprimer" }).click();
+      await expect.poll(async () => await findTaskById(request, accessToken, taskId!)).toBeNull();
+      taskId = null;
+    } finally {
+      if (taskId) await deleteTaskById(request, accessToken, taskId);
+    }
   });
 
   test("protected finance lifecycle supports partial payment, settlement, and cleanup", async ({
@@ -203,52 +275,65 @@ test.describe("connected regression suite", () => {
     );
 
     await login(page);
+    const accessToken = await getSupabaseAccessToken(page);
     const financePin = deriveFinancePin(password!);
     await ensureFinancePin(page, financePin);
     await unlockFinance(page, financePin);
 
     const title = `E2E-FINANCE-${Date.now()}`;
-    await page.getByRole("button", { name: "Ajouter une dette ou une créance" }).click();
-    const createDialog = page.getByRole("dialog");
-    await expect(createDialog.getByRole("heading", { name: "Nouvelle opération" })).toBeVisible();
-    await createDialog.getByRole("button", { name: "On me doit", exact: true }).click();
-    await createDialog.getByPlaceholder("Nom ou entreprise").fill("E2E Finance");
-    await createDialog.getByPlaceholder("Prêt, achat, facture…").fill(title);
-    await createDialog.locator('input[type="number"]').fill("120000");
-    await createDialog.locator('input[type="date"]').fill("2099-12-31");
-    await createDialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
+    let obligationId: string | null = null;
 
-    const card = page.locator("article").filter({ hasText: title }).first();
-    await expect(card).toBeVisible();
-    await expect(card.getByText("Initial", { exact: true }).locator("..")).toContainText(
-      /120\s*000/,
-    );
-    await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/0/);
-    await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/120\s*000/);
+    try {
+      await page.getByRole("button", { name: "Ajouter une dette ou une créance" }).click();
+      const createDialog = page.getByRole("dialog");
+      await expect(createDialog.getByRole("heading", { name: "Nouvelle opération" })).toBeVisible();
+      await createDialog.getByRole("button", { name: "On me doit", exact: true }).click();
+      await createDialog.getByPlaceholder("Nom ou entreprise").fill("E2E Finance");
+      await createDialog.getByPlaceholder("Prêt, achat, facture…").fill(title);
+      await createDialog.locator('input[type="number"]').fill("120000");
+      await createDialog.locator('input[type="date"]').fill("2099-12-31");
+      await createDialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
 
-    await card.getByRole("button", { name: "Enregistrer un paiement" }).click();
-    const partialPaymentDialog = page.getByRole("dialog");
-    await partialPaymentDialog.locator('input[type="number"]').fill("40000");
-    await partialPaymentDialog.getByPlaceholder("Espèces, Wave…").fill("E2E paiement partiel");
-    await partialPaymentDialog.getByRole("button", { name: "Valider le paiement" }).click();
+      const card = page.locator("article").filter({ hasText: title }).first();
+      await expect(card).toBeVisible();
+      await expect
+        .poll(async () => (await findFinanceRows(request, accessToken, title)).length)
+        .toBe(1);
+      obligationId = (await findFinanceRows(request, accessToken, title))[0].id;
 
-    await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/40\s*000/);
-    await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/80\s*000/);
-    await expect(card.getByText("En cours", { exact: true })).toBeVisible();
+      await expect(card.getByText("Initial", { exact: true }).locator("..")).toContainText(
+        /120\s*000/,
+      );
+      await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/0/);
+      await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(
+        /120\s*000/,
+      );
 
-    await card.getByRole("button", { name: "Enregistrer un paiement" }).click();
-    const settlementDialog = page.getByRole("dialog");
-    await settlementDialog.getByRole("button", { name: /Solder entièrement/ }).click();
-    await settlementDialog.getByRole("button", { name: "Valider le paiement" }).click();
+      await card.getByRole("button", { name: "Enregistrer un paiement" }).click();
+      const partialPaymentDialog = page.getByRole("dialog");
+      await partialPaymentDialog.locator('input[type="number"]').fill("40000");
+      await partialPaymentDialog.getByPlaceholder("Espèces, Wave…").fill("E2E paiement partiel");
+      await partialPaymentDialog.getByRole("button", { name: "Valider le paiement" }).click();
 
-    await expect(card.getByText("Soldé", { exact: true })).toBeVisible();
-    await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/120\s*000/);
-    await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/0/);
+      await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/40\s*000/);
+      await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/80\s*000/);
+      await expect(card.getByText("En cours", { exact: true })).toBeVisible();
 
-    const accessToken = await getSupabaseAccessToken(page);
-    const rows = await findFinanceRows(request, accessToken, title);
-    expect(rows).toHaveLength(1);
-    await cleanupFinanceRow(request, accessToken, rows[0].id, title);
+      await card.getByRole("button", { name: "Enregistrer un paiement" }).click();
+      const settlementDialog = page.getByRole("dialog");
+      await settlementDialog.getByRole("button", { name: /Solder entièrement/ }).click();
+      await settlementDialog.getByRole("button", { name: "Valider le paiement" }).click();
+
+      await expect(card.getByText("Soldé", { exact: true })).toBeVisible();
+      await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/120\s*000/);
+      await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/0/);
+    } finally {
+      if (!obligationId) {
+        const rows = await findFinanceRows(request, accessToken, title);
+        obligationId = rows[0]?.id ?? null;
+      }
+      if (obligationId) await cleanupFinanceRow(request, accessToken, obligationId, title);
+    }
   });
 
   test("gamification and AI assistant answer without server errors", async ({ page }) => {
