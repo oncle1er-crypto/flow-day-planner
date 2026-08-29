@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "typecheck": "vite build --mode development >/dev/null && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run --exclude 'tests/e2e/**'",
     "test:e2e": "playwright test",
     "format": "prettier --write ."
