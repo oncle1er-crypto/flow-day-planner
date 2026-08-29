@@ -49,7 +49,9 @@ async function ensureFinancePin(page: Page, pin: string) {
     await inputs.nth(0).fill(pin);
     await inputs.nth(1).fill(pin);
     await page.getByRole("button", { name: "Activer le code", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Modifier le code", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Modifier le code", exact: true }),
+    ).toBeVisible();
   }
 }
 
@@ -129,7 +131,9 @@ async function cleanupFinanceRow(
 
   const response = await request.delete(url.toString(), { headers: financeHeaders(accessToken) });
   expect(response.status(), "Finance cleanup should delete the test obligation").toBe(204);
-  await expect.poll(async () => (await findFinanceRows(request, accessToken, title)).length).toBe(0);
+  await expect
+    .poll(async () => (await findFinanceRows(request, accessToken, title)).length)
+    .toBe(0);
 }
 
 test.describe("connected regression suite", () => {
@@ -216,7 +220,9 @@ test.describe("connected regression suite", () => {
 
     const card = page.locator("article").filter({ hasText: title }).first();
     await expect(card).toBeVisible();
-    await expect(card.getByText("Initial", { exact: true }).locator("..")).toContainText(/120\s*000/);
+    await expect(card.getByText("Initial", { exact: true }).locator("..")).toContainText(
+      /120\s*000/,
+    );
     await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/0/);
     await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/120\s*000/);
 
