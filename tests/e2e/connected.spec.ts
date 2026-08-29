@@ -9,7 +9,7 @@ async function login(page: import("@playwright/test").Page) {
   await page.getByLabel("Mot de passe").first().fill(password!);
   await page.getByRole("button", { name: "Se connecter" }).first().click();
   await page.waitForURL(/\/today$/);
-  await expect(page.getByText("À faire aujourd'hui")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "À faire", exact: true })).toBeVisible();
 }
 
 test.describe("connected regression suite", () => {
