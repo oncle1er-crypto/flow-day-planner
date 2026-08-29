@@ -24,6 +24,8 @@ import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedFocusRouteImport } from './routes/_authenticated/focus'
+import { Route as AuthenticatedFinanceSecurityRouteImport } from './routes/_authenticated/finance-security'
+import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
@@ -34,130 +36,32 @@ import { Route as ApiPublicAiAssistantRouteImport } from './routes/api/public/ai
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
-  id: '/today',
-  path: '/today',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedNotificationsRoute =
-  AuthenticatedNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({
-  id: '/habits',
-  path: '/habits',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedGoalsRoute = AuthenticatedGoalsRouteImport.update({
-  id: '/goals',
-  path: '/goals',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedFocusRoute = AuthenticatedFocusRouteImport.update({
-  id: '/focus',
-  path: '/focus',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAchievementsRoute =
-  AuthenticatedAchievementsRouteImport.update({
-    id: '/achievements',
-    path: '/achievements',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicAiAssistantRoute = ApiPublicAiAssistantRouteImport.update({
-  id: '/api/public/ai-assistant',
-  path: '/api/public/ai-assistant',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({ id: '/sitemap.xml', path: '/sitemap.xml', getParentRoute: () => rootRouteImport } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({ id: '/reset-password', path: '/reset-password', getParentRoute: () => rootRouteImport } as any)
+const McpRoute = McpRouteImport.update({ id: '/mcp', path: '/mcp', getParentRoute: () => rootRouteImport } as any)
+const AuthRoute = AuthRouteImport.update({ id: '/auth', path: '/auth', getParentRoute: () => rootRouteImport } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({ id: '/_authenticated', getParentRoute: () => rootRouteImport } as any)
+const IndexRoute = IndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => rootRouteImport } as any)
+const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({ id: '/today', path: '/today', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({ id: '/tasks', path: '/tasks', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({ id: '/settings', path: '/settings', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({ id: '/profile', path: '/profile', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedNotificationsRoute = AuthenticatedNotificationsRouteImport.update({ id: '/notifications', path: '/notifications', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({ id: '/history', path: '/history', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({ id: '/habits', path: '/habits', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedGoalsRoute = AuthenticatedGoalsRouteImport.update({ id: '/goals', path: '/goals', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedFocusRoute = AuthenticatedFocusRouteImport.update({ id: '/focus', path: '/focus', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedFinanceSecurityRoute = AuthenticatedFinanceSecurityRouteImport.update({ id: '/finance-security', path: '/finance-security', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({ id: '/finance', path: '/finance', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({ id: '/dashboard', path: '/dashboard', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({ id: '/calendar', path: '/calendar', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({ id: '/assistant', path: '/assistant', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const AuthenticatedAchievementsRoute = AuthenticatedAchievementsRouteImport.update({ id: '/achievements', path: '/achievements', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute = Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({ id: '/.well-known/oauth-protected-resource', path: '/.well-known/oauth-protected-resource', getParentRoute: () => rootRouteImport } as any)
+const Char91DotmcpChar93ListToolsRoute = Char91DotmcpChar93ListToolsRouteImport.update({ id: '/.mcp/list-tools', path: '/.mcp/list-tools', getParentRoute: () => rootRouteImport } as any)
+const ApiPublicAiAssistantRoute = ApiPublicAiAssistantRouteImport.update({ id: '/api/public/ai-assistant', path: '/api/public/ai-assistant', getParentRoute: () => rootRouteImport } as any)
+const Char91DotmcpChar93InvokeToolToolRoute = Char91DotmcpChar93InvokeToolToolRouteImport.update({ id: '/.mcp/invoke-tool/$tool', path: '/.mcp/invoke-tool/$tool', getParentRoute: () => rootRouteImport } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({ id: '/.lovable/oauth/consent', path: '/.lovable/oauth/consent', getParentRoute: () => rootRouteImport } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -171,6 +75,8 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AuthenticatedAssistantRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/finance': typeof AuthenticatedFinanceRoute
+  '/finance-security': typeof AuthenticatedFinanceSecurityRoute
   '/focus': typeof AuthenticatedFocusRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/habits': typeof AuthenticatedHabitsRoute
@@ -184,31 +90,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/ai-assistant': typeof ApiPublicAiAssistantRoute
 }
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
-  '/mcp': typeof McpRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/achievements': typeof AuthenticatedAchievementsRoute
-  '/assistant': typeof AuthenticatedAssistantRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/focus': typeof AuthenticatedFocusRoute
-  '/goals': typeof AuthenticatedGoalsRoute
-  '/habits': typeof AuthenticatedHabitsRoute
-  '/history': typeof AuthenticatedHistoryRoute
-  '/notifications': typeof AuthenticatedNotificationsRoute
-  '/profile': typeof AuthenticatedProfileRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/tasks': typeof AuthenticatedTasksRoute
-  '/today': typeof AuthenticatedTodayRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
-  '/api/public/ai-assistant': typeof ApiPublicAiAssistantRoute
-}
+export interface FileRoutesByTo extends FileRoutesByFullPath {}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
@@ -223,6 +105,8 @@ export interface FileRoutesById {
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/finance': typeof AuthenticatedFinanceRoute
+  '/_authenticated/finance-security': typeof AuthenticatedFinanceSecurityRoute
   '/_authenticated/focus': typeof AuthenticatedFocusRoute
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
@@ -238,81 +122,10 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/auth'
-    | '/mcp'
-    | '/reset-password'
-    | '/sitemap.xml'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
-    | '/achievements'
-    | '/assistant'
-    | '/calendar'
-    | '/dashboard'
-    | '/focus'
-    | '/goals'
-    | '/habits'
-    | '/history'
-    | '/notifications'
-    | '/profile'
-    | '/settings'
-    | '/tasks'
-    | '/today'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
-    | '/api/public/ai-assistant'
+  fullPaths: keyof FileRoutesByFullPath
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth'
-    | '/mcp'
-    | '/reset-password'
-    | '/sitemap.xml'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
-    | '/achievements'
-    | '/assistant'
-    | '/calendar'
-    | '/dashboard'
-    | '/focus'
-    | '/goals'
-    | '/habits'
-    | '/history'
-    | '/notifications'
-    | '/profile'
-    | '/settings'
-    | '/tasks'
-    | '/today'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
-    | '/api/public/ai-assistant'
-  id:
-    | '__root__'
-    | '/'
-    | '/_authenticated'
-    | '/auth'
-    | '/mcp'
-    | '/reset-password'
-    | '/sitemap.xml'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
-    | '/_authenticated/achievements'
-    | '/_authenticated/assistant'
-    | '/_authenticated/calendar'
-    | '/_authenticated/dashboard'
-    | '/_authenticated/focus'
-    | '/_authenticated/goals'
-    | '/_authenticated/habits'
-    | '/_authenticated/history'
-    | '/_authenticated/notifications'
-    | '/_authenticated/profile'
-    | '/_authenticated/settings'
-    | '/_authenticated/tasks'
-    | '/_authenticated/today'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
-    | '/api/public/ai-assistant'
+  to: keyof FileRoutesByTo
+  id: keyof FileRoutesById
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -331,174 +144,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/today': {
-      id: '/_authenticated/today'
-      path: '/today'
-      fullPath: '/today'
-      preLoaderRoute: typeof AuthenticatedTodayRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tasks': {
-      id: '/_authenticated/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AuthenticatedTasksRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/notifications': {
-      id: '/_authenticated/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/history': {
-      id: '/_authenticated/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof AuthenticatedHistoryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/habits': {
-      id: '/_authenticated/habits'
-      path: '/habits'
-      fullPath: '/habits'
-      preLoaderRoute: typeof AuthenticatedHabitsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/goals': {
-      id: '/_authenticated/goals'
-      path: '/goals'
-      fullPath: '/goals'
-      preLoaderRoute: typeof AuthenticatedGoalsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/focus': {
-      id: '/_authenticated/focus'
-      path: '/focus'
-      fullPath: '/focus'
-      preLoaderRoute: typeof AuthenticatedFocusRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/assistant': {
-      id: '/_authenticated/assistant'
-      path: '/assistant'
-      fullPath: '/assistant'
-      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/achievements': {
-      id: '/_authenticated/achievements'
-      path: '/achievements'
-      fullPath: '/achievements'
-      preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/ai-assistant': {
-      id: '/api/public/ai-assistant'
-      path: '/api/public/ai-assistant'
-      fullPath: '/api/public/ai-assistant'
-      preLoaderRoute: typeof ApiPublicAiAssistantRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    '/sitemap.xml': { id: '/sitemap.xml'; path: '/sitemap.xml'; fullPath: '/sitemap.xml'; preLoaderRoute: typeof SitemapDotxmlRouteImport; parentRoute: typeof rootRouteImport }
+    '/reset-password': { id: '/reset-password'; path: '/reset-password'; fullPath: '/reset-password'; preLoaderRoute: typeof ResetPasswordRouteImport; parentRoute: typeof rootRouteImport }
+    '/mcp': { id: '/mcp'; path: '/mcp'; fullPath: '/mcp'; preLoaderRoute: typeof McpRouteImport; parentRoute: typeof rootRouteImport }
+    '/auth': { id: '/auth'; path: '/auth'; fullPath: '/auth'; preLoaderRoute: typeof AuthRouteImport; parentRoute: typeof rootRouteImport }
+    '/_authenticated': { id: '/_authenticated'; path: ''; fullPath: '/'; preLoaderRoute: typeof AuthenticatedRouteRouteImport; parentRoute: typeof rootRouteImport }
+    '/': { id: '/'; path: '/'; fullPath: '/'; preLoaderRoute: typeof IndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/_authenticated/today': { id: '/_authenticated/today'; path: '/today'; fullPath: '/today'; preLoaderRoute: typeof AuthenticatedTodayRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/tasks': { id: '/_authenticated/tasks'; path: '/tasks'; fullPath: '/tasks'; preLoaderRoute: typeof AuthenticatedTasksRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/settings': { id: '/_authenticated/settings'; path: '/settings'; fullPath: '/settings'; preLoaderRoute: typeof AuthenticatedSettingsRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/profile': { id: '/_authenticated/profile'; path: '/profile'; fullPath: '/profile'; preLoaderRoute: typeof AuthenticatedProfileRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/notifications': { id: '/_authenticated/notifications'; path: '/notifications'; fullPath: '/notifications'; preLoaderRoute: typeof AuthenticatedNotificationsRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/history': { id: '/_authenticated/history'; path: '/history'; fullPath: '/history'; preLoaderRoute: typeof AuthenticatedHistoryRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/habits': { id: '/_authenticated/habits'; path: '/habits'; fullPath: '/habits'; preLoaderRoute: typeof AuthenticatedHabitsRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/goals': { id: '/_authenticated/goals'; path: '/goals'; fullPath: '/goals'; preLoaderRoute: typeof AuthenticatedGoalsRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/focus': { id: '/_authenticated/focus'; path: '/focus'; fullPath: '/focus'; preLoaderRoute: typeof AuthenticatedFocusRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/finance-security': { id: '/_authenticated/finance-security'; path: '/finance-security'; fullPath: '/finance-security'; preLoaderRoute: typeof AuthenticatedFinanceSecurityRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/finance': { id: '/_authenticated/finance'; path: '/finance'; fullPath: '/finance'; preLoaderRoute: typeof AuthenticatedFinanceRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/dashboard': { id: '/_authenticated/dashboard'; path: '/dashboard'; fullPath: '/dashboard'; preLoaderRoute: typeof AuthenticatedDashboardRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/calendar': { id: '/_authenticated/calendar'; path: '/calendar'; fullPath: '/calendar'; preLoaderRoute: typeof AuthenticatedCalendarRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/assistant': { id: '/_authenticated/assistant'; path: '/assistant'; fullPath: '/assistant'; preLoaderRoute: typeof AuthenticatedAssistantRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/_authenticated/achievements': { id: '/_authenticated/achievements'; path: '/achievements'; fullPath: '/achievements'; preLoaderRoute: typeof AuthenticatedAchievementsRouteImport; parentRoute: typeof AuthenticatedRouteRoute }
+    '/.well-known/oauth-protected-resource': { id: '/.well-known/oauth-protected-resource'; path: '/.well-known/oauth-protected-resource'; fullPath: '/.well-known/oauth-protected-resource'; preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport; parentRoute: typeof rootRouteImport }
+    '/.mcp/list-tools': { id: '/.mcp/list-tools'; path: '/.mcp/list-tools'; fullPath: '/.mcp/list-tools'; preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport; parentRoute: typeof rootRouteImport }
+    '/api/public/ai-assistant': { id: '/api/public/ai-assistant'; path: '/api/public/ai-assistant'; fullPath: '/api/public/ai-assistant'; preLoaderRoute: typeof ApiPublicAiAssistantRouteImport; parentRoute: typeof rootRouteImport }
+    '/.mcp/invoke-tool/$tool': { id: '/.mcp/invoke-tool/$tool'; path: '/.mcp/invoke-tool/$tool'; fullPath: '/.mcp/invoke-tool/$tool'; preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport; parentRoute: typeof rootRouteImport }
+    '/.lovable/oauth/consent': { id: '/.lovable/oauth/consent'; path: '/.lovable/oauth/consent'; fullPath: '/.lovable/oauth/consent'; preLoaderRoute: typeof DotlovableOauthConsentRouteImport; parentRoute: typeof rootRouteImport }
   }
 }
 
@@ -507,6 +178,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
+  AuthenticatedFinanceSecurityRoute: typeof AuthenticatedFinanceSecurityRoute
   AuthenticatedFocusRoute: typeof AuthenticatedFocusRoute
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
@@ -517,43 +190,38 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
 }
-
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAchievementsRoute: AuthenticatedAchievementsRoute,
-  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
-  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedFocusRoute: AuthenticatedFocusRoute,
-  AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
-  AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
-  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
-  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
-  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
-  AuthenticatedTodayRoute: AuthenticatedTodayRoute,
+  AuthenticatedAchievementsRoute,
+  AuthenticatedAssistantRoute,
+  AuthenticatedCalendarRoute,
+  AuthenticatedDashboardRoute,
+  AuthenticatedFinanceRoute,
+  AuthenticatedFinanceSecurityRoute,
+  AuthenticatedFocusRoute,
+  AuthenticatedGoalsRoute,
+  AuthenticatedHabitsRoute,
+  AuthenticatedHistoryRoute,
+  AuthenticatedNotificationsRoute,
+  AuthenticatedProfileRoute,
+  AuthenticatedSettingsRoute,
+  AuthenticatedTasksRoute,
+  AuthenticatedTodayRoute,
 }
-
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
-
+const AuthenticatedRouteRouteWithChildren = AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
-  McpRoute: McpRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  SitemapDotxmlRoute: SitemapDotxmlRoute,
-  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
-  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
-  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
-  ApiPublicAiAssistantRoute: ApiPublicAiAssistantRoute,
+  AuthRoute,
+  McpRoute,
+  ResetPasswordRoute,
+  SitemapDotxmlRoute,
+  Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicAiAssistantRoute,
 }
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.ts'
