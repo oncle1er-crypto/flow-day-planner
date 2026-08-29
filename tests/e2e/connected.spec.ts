@@ -226,7 +226,9 @@ test.describe("connected regression suite", () => {
 
       const card = page.locator("article").filter({ hasText: title }).first();
       await expect(card).toBeVisible();
-      await expect.poll(async () => (await findTaskRows(request, accessToken, title)).length).toBe(1);
+      await expect
+        .poll(async () => (await findTaskRows(request, accessToken, title)).length)
+        .toBe(1);
       taskId = (await findTaskRows(request, accessToken, title))[0].id;
 
       await card.getByRole("button", { name: "Marquer terminée" }).click();
@@ -316,7 +318,9 @@ test.describe("connected regression suite", () => {
       await partialPaymentDialog.getByRole("button", { name: "Valider le paiement" }).click();
 
       await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/40\s*000/);
-      await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/80\s*000/);
+      await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(
+        /80\s*000/,
+      );
       await expect(card.getByText("En cours", { exact: true })).toBeVisible();
 
       await card.getByRole("button", { name: "Enregistrer un paiement" }).click();
@@ -325,7 +329,9 @@ test.describe("connected regression suite", () => {
       await settlementDialog.getByRole("button", { name: "Valider le paiement" }).click();
 
       await expect(card.getByText("Soldé", { exact: true })).toBeVisible();
-      await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(/120\s*000/);
+      await expect(card.getByText("Payé", { exact: true }).locator("..")).toContainText(
+        /120\s*000/,
+      );
       await expect(card.getByText("Reste", { exact: true }).locator("..")).toContainText(/0/);
     } finally {
       if (!obligationId) {
