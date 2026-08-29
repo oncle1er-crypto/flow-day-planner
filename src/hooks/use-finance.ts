@@ -83,27 +83,17 @@ export function useAddFinancialPayment() {
       amount: number;
       note?: string;
     }) => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) throw new Error("Non authentifié");
       if (!Number.isFinite(amount) || amount <= 0) throw new Error("Montant invalide");
       if (amount > obligation.remaining_amount) {
         throw new Error("Le paiement ne peut pas dépasser le reste à payer");
       }
-      const { error } = await financeDb.from("financial_payments").insert({
-        obligation_id: obligation.id,
-        user_id: auth.user.id,
-        amount,
-        note: note?.trim() || null,
+
+      const { error } = await financeDb.rpc("record_financial_payment", {
+        target_obligation_id: obligation.id,
+        payment_amount: amount,
+        payment_note: note?.trim() || null,
       });
       if (error) throw error;
-
-      if (amount === obligation.remaining_amount) {
-        const { error: settleError } = await financeDb
-          .from("financial_obligations")
-          .update({ status: "settled", settled_at: new Date().toISOString() })
-          .eq("id", obligation.id);
-        if (settleError) throw settleError;
-      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["financial-obligations"] });
