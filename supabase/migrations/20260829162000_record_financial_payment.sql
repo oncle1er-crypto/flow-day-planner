@@ -57,5 +57,5 @@ begin
 end;
 $$;
 
-revoke all on function public.record_financial_payment(uuid, numeric, text) from public;
+revoke all on function public.record_financial_payment(uuid, numeric, text) from public, anon;
 grant execute on function public.record_financial_payment(uuid, numeric, text) to authenticated;
