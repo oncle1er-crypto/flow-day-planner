@@ -21,6 +21,8 @@ jobs:
       E2E_BASE_URL: https://plannificateur.vercel.app
       E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      SUPABASE_URL: https://sjdhvzjaqarlqcqpkfzd.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqZGh2emphcWFybHFjcXBrZnpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzk5OTAsImV4cCI6MjA5NzUxNTk5MH0.axZ9NV9_3WzO6HW0MOAOSZjKydjyoHCWWxQyMlA1sGM
       GH_TOKEN: ${{ github.token }}
 
     steps:
