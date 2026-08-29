@@ -1,0 +1,59 @@
+import { supabase } from "@/integrations/supabase/client";
+
+const UNLOCK_KEY = "flow-day-finance-unlocked";
+
+type PinVerification = {
+  ok: boolean;
+  reason: "verified" | "wrong_pin" | "locked" | "not_configured" | "invalid_format";
+  remaining_attempts?: number;
+  locked_until?: string;
+};
+
+type UntypedSupabase = {
+  rpc: (
+    fn: string,
+    args?: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+};
+
+const financeApi = supabase as unknown as UntypedSupabase;
+
+export function isValidFinancePin(pin: string) {
+  return /^\d{4}$/.test(pin);
+}
+
+export async function hasFinancePin() {
+  const { data, error } = await financeApi.rpc("has_finance_pin");
+  if (error) throw new Error(error.message);
+  return data === true;
+}
+
+export async function setFinancePin(pin: string) {
+  if (!isValidFinancePin(pin)) throw new Error("Le code doit contenir exactement 4 chiffres");
+  const { error } = await financeApi.rpc("set_finance_pin", { new_pin: pin });
+  if (error) throw new Error(error.message);
+  lockFinanceSession();
+}
+
+export async function verifyFinancePin(pin: string): Promise<PinVerification> {
+  if (!isValidFinancePin(pin)) {
+    return { ok: false, reason: "invalid_format", remaining_attempts: 0 };
+  }
+  const { data, error } = await financeApi.rpc("verify_finance_pin", { candidate_pin: pin });
+  if (error) throw new Error(error.message);
+  const result = data as PinVerification;
+  if (result.ok) unlockFinanceSession();
+  return result;
+}
+
+export function isFinanceSessionUnlocked() {
+  return typeof window !== "undefined" && sessionStorage.getItem(UNLOCK_KEY) === "1";
+}
+
+export function unlockFinanceSession() {
+  if (typeof window !== "undefined") sessionStorage.setItem(UNLOCK_KEY, "1");
+}
+
+export function lockFinanceSession() {
+  if (typeof window !== "undefined") sessionStorage.removeItem(UNLOCK_KEY);
+}
