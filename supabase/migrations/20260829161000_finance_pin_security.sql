@@ -119,9 +119,9 @@ end;
 $$;
 
 revoke all on public.finance_security from anon, authenticated;
-revoke all on function public.has_finance_pin() from public;
-revoke all on function public.set_finance_pin(text) from public;
-revoke all on function public.verify_finance_pin(text) from public;
+revoke all on function public.has_finance_pin() from public, anon;
+revoke all on function public.set_finance_pin(text) from public, anon;
+revoke all on function public.verify_finance_pin(text) from public, anon;
 grant execute on function public.has_finance_pin() to authenticated;
 grant execute on function public.set_finance_pin(text) to authenticated;
 grant execute on function public.verify_finance_pin(text) to authenticated;
