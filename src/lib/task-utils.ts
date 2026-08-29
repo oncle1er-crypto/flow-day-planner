@@ -41,12 +41,7 @@ export function isOverdue(
   t: Pick<Task, "due_date" | "due_time" | "status">,
   now: Date = new Date(),
 ) {
-  if (
-    !t.due_date ||
-    t.status === "done" ||
-    t.status === "cancelled" ||
-    t.status === "postponed"
-  ) {
+  if (!t.due_date || t.status === "done" || t.status === "cancelled" || t.status === "postponed") {
     return false;
   }
 
