@@ -36,6 +36,18 @@ export async function setFinancePin(pin: string) {
   lockFinanceSession();
 }
 
+export async function changeFinancePin(currentPin: string, newPin: string) {
+  if (!isValidFinancePin(currentPin) || !isValidFinancePin(newPin)) {
+    throw new Error("Le code doit contenir exactement 4 chiffres");
+  }
+  const { error } = await financeApi.rpc("change_finance_pin", {
+    current_pin: currentPin,
+    new_pin: newPin,
+  });
+  if (error) throw new Error(error.message);
+  lockFinanceSession();
+}
+
 export async function verifyFinancePin(pin: string): Promise<PinVerification> {
   if (!isValidFinancePin(pin)) {
     return { ok: false, reason: "invalid_format", remaining_attempts: 0 };
@@ -45,6 +57,12 @@ export async function verifyFinancePin(pin: string): Promise<PinVerification> {
   const result = data as PinVerification;
   if (result.ok) unlockFinanceSession();
   return result;
+}
+
+export async function lockFinanceAccess() {
+  const { error } = await financeApi.rpc("lock_finance");
+  lockFinanceSession();
+  if (error) throw new Error(error.message);
 }
 
 export function isFinanceSessionUnlocked() {
