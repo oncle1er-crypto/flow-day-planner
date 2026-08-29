@@ -17,7 +17,15 @@ export const Route = createFileRoute("/_authenticated/finance-security")({
   component: FinanceSecurityPage,
 });
 
-function PinField({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+function PinField({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+}) {
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">{label}</p>
@@ -67,7 +75,9 @@ function FinanceSecurityPage() {
           if (result.reason === "locked") {
             toast.error("Trop de tentatives. Réessayez dans 15 minutes.");
           } else {
-            toast.error(`Code actuel incorrect${result.remaining_attempts !== undefined ? ` · ${result.remaining_attempts} tentative(s) restante(s)` : ""}`);
+            toast.error(
+              `Code actuel incorrect${result.remaining_attempts !== undefined ? ` · ${result.remaining_attempts} tentative(s) restante(s)` : ""}`,
+            );
           }
           return;
         }

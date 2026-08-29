@@ -106,7 +106,13 @@ export function useAddFinancialPayment() {
 export function useUpdateFinancialStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "open" | "settled" | "cancelled" }) => {
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: "open" | "settled" | "cancelled";
+    }) => {
       const { error } = await financeDb
         .from("financial_obligations")
         .update({ status, settled_at: status === "settled" ? new Date().toISOString() : null })

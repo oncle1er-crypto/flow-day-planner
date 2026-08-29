@@ -33,7 +33,12 @@ import {
   useFinancialObligations,
   useUpdateFinancialStatus,
 } from "@/hooks/use-finance";
-import { financeSummary, formatMoney, type FinancialObligation, type ObligationType } from "@/lib/finance";
+import {
+  financeSummary,
+  formatMoney,
+  type FinancialObligation,
+  type ObligationType,
+} from "@/lib/finance";
 import {
   hasFinancePin,
   isFinanceSessionUnlocked,
@@ -76,7 +81,9 @@ function FinancePage() {
         return;
       }
       if (result.reason === "locked") {
-        toast.error("Accès temporairement bloqué après trop de tentatives. Réessayez dans 15 minutes.");
+        toast.error(
+          "Accès temporairement bloqué après trop de tentatives. Réessayez dans 15 minutes.",
+        );
       } else {
         toast.error(
           result.reason === "wrong_pin"
@@ -95,7 +102,9 @@ function FinancePage() {
   if (checkingPin) {
     return (
       <AppShell title="Finances" subtitle="Dettes & créances">
-        <div className="py-16 text-center text-sm text-muted-foreground">Vérification de la sécurité…</div>
+        <div className="py-16 text-center text-sm text-muted-foreground">
+          Vérification de la sécurité…
+        </div>
       </AppShell>
     );
   }
@@ -127,7 +136,9 @@ function FinancePage() {
             </div>
             <div>
               <h2 className="font-display text-xl font-semibold">Déverrouiller Finances</h2>
-              <p className="text-sm text-muted-foreground mt-1">Saisissez votre code secret à 4 chiffres.</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Saisissez votre code secret à 4 chiffres.
+              </p>
             </div>
             <InputOTP
               maxLength={4}
@@ -177,7 +188,11 @@ function FinancePage() {
         <div className="grid grid-cols-2 gap-3">
           <SummaryCard label="On me doit" value={summary.receivables} icon={ArrowDownLeft} />
           <SummaryCard label="Je dois" value={summary.debts} icon={ArrowUpRight} />
-          <SummaryCard label="Créances en retard" value={summary.overdueReceivables} icon={Clock3} />
+          <SummaryCard
+            label="Créances en retard"
+            value={summary.overdueReceivables}
+            icon={Clock3}
+          />
           <SummaryCard label="Dettes en retard" value={summary.overdueDebts} icon={Clock3} />
         </div>
 
@@ -190,13 +205,15 @@ function FinancePage() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {([
-            ["all", "Tout"],
-            ["receivable", "On me doit"],
-            ["debt", "Je dois"],
-            ["overdue", "En retard"],
-            ["settled", "Soldé"],
-          ] as const).map(([value, label]) => (
+          {(
+            [
+              ["all", "Tout"],
+              ["receivable", "On me doit"],
+              ["debt", "Je dois"],
+              ["overdue", "En retard"],
+              ["settled", "Soldé"],
+            ] as const
+          ).map(([value, label]) => (
             <Button
               key={value}
               variant={filter === value ? "default" : "outline"}
@@ -223,11 +240,7 @@ function FinancePage() {
         ) : (
           <div className="space-y-3">
             {filtered.map((item) => (
-              <ObligationCard
-                key={item.id}
-                item={item}
-                onPayment={() => setPaymentTarget(item)}
-              />
+              <ObligationCard key={item.id} item={item} onPayment={() => setPaymentTarget(item)} />
             ))}
           </div>
         )}
@@ -239,7 +252,15 @@ function FinancePage() {
   );
 }
 
-function SummaryCard({ label, value, icon: Icon }: { label: string; value: number; icon: typeof ArrowDownLeft }) {
+function SummaryCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: typeof ArrowDownLeft;
+}) {
   return (
     <div className="rounded-2xl border border-border bg-card/70 p-4 shadow-card">
       <Icon className="h-5 w-5 text-primary mb-2" />
@@ -290,12 +311,18 @@ function ObligationCard({ item, onPayment }: { item: FinancialObligation; onPaym
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>{item.type === "receivable" ? "On vous doit" : "Vous devez"}</span>
-        <span>{item.due_date ? `Échéance ${new Date(`${item.due_date}T12:00:00`).toLocaleDateString("fr-FR")}` : "Sans échéance"}</span>
+        <span>
+          {item.due_date
+            ? `Échéance ${new Date(`${item.due_date}T12:00:00`).toLocaleDateString("fr-FR")}`
+            : "Sans échéance"}
+        </span>
       </div>
 
       {!settled && !cancelled && (
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" onClick={onPayment}>Enregistrer un paiement</Button>
+          <Button variant="outline" size="sm" onClick={onPayment}>
+            Enregistrer un paiement
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -319,7 +346,13 @@ function Amount({ label, value, strong }: { label: string; value: number; strong
   );
 }
 
-function CreateObligationDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+function CreateObligationDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const createMutation = useCreateFinancialObligation();
   const [type, setType] = useState<ObligationType>("receivable");
   const [name, setName] = useState("");
@@ -357,24 +390,50 @@ function CreateObligationDialog({ open, onOpenChange }: { open: boolean; onOpenC
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nouvelle opération</DialogTitle>
-          <DialogDescription>Enregistrez ce que vous devez ou ce qu'on vous doit.</DialogDescription>
+          <DialogDescription>
+            Enregistrez ce que vous devez ou ce qu'on vous doit.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
-            <Button variant={type === "receivable" ? "default" : "outline"} onClick={() => setType("receivable")}>On me doit</Button>
-            <Button variant={type === "debt" ? "default" : "outline"} onClick={() => setType("debt")}>Je dois</Button>
+            <Button
+              variant={type === "receivable" ? "default" : "outline"}
+              onClick={() => setType("receivable")}
+            >
+              On me doit
+            </Button>
+            <Button
+              variant={type === "debt" ? "default" : "outline"}
+              onClick={() => setType("debt")}
+            >
+              Je dois
+            </Button>
           </div>
           <Field label={type === "receivable" ? "Débiteur" : "Créancier"}>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom ou entreprise" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nom ou entreprise"
+            />
           </Field>
           <Field label="Téléphone (optionnel)">
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" />
           </Field>
           <Field label="Motif">
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Prêt, achat, facture…" />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Prêt, achat, facture…"
+            />
           </Field>
           <Field label="Montant initial (F CFA)">
-            <Input type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="numeric" />
+            <Input
+              type="number"
+              min="1"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              inputMode="numeric"
+            />
           </Field>
           <Field label="Date d'échéance (optionnel)">
             <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
@@ -391,7 +450,13 @@ function CreateObligationDialog({ open, onOpenChange }: { open: boolean; onOpenC
   );
 }
 
-function PaymentDialog({ target, onClose }: { target: FinancialObligation | null; onClose: () => void }) {
+function PaymentDialog({
+  target,
+  onClose,
+}: {
+  target: FinancialObligation | null;
+  onClose: () => void;
+}) {
   const paymentMutation = useAddFinancialPayment();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -414,7 +479,9 @@ function PaymentDialog({ target, onClose }: { target: FinancialObligation | null
         <DialogHeader>
           <DialogTitle>Enregistrer un paiement</DialogTitle>
           <DialogDescription>
-            {target ? `${target.counterparty_name} · reste ${formatMoney(target.remaining_amount)}` : ""}
+            {target
+              ? `${target.counterparty_name} · reste ${formatMoney(target.remaining_amount)}`
+              : ""}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -429,10 +496,18 @@ function PaymentDialog({ target, onClose }: { target: FinancialObligation | null
             />
           </Field>
           <Field label="Note (optionnel)">
-            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Espèces, Wave…" />
+            <Input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Espèces, Wave…"
+            />
           </Field>
           {target && (
-            <Button variant="outline" className="w-full" onClick={() => setAmount(String(target.remaining_amount))}>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setAmount(String(target.remaining_amount))}
+            >
               Solder entièrement ({formatMoney(target.remaining_amount)})
             </Button>
           )}
