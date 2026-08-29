@@ -84,6 +84,8 @@ test.describe("connected regression suite", () => {
     await expect(page.getByText("Tâches proposées (1)")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Appeler le dentiste", { exact: true })).toBeVisible();
 
-    expect(serverFailures, `Unexpected 5xx responses: ${serverFailures.join(", ")}`).toEqual([]);
+    expect(serverFailures, `Unexpected 5xx responses: ${serverFailures.join(", ")}`).toEqual(
+      [],
+    );
   });
 });
