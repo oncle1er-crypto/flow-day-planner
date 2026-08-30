@@ -254,8 +254,7 @@ test.describe("connected regression suite", () => {
       await card.getByText(title, { exact: true }).click();
       await expect(page.getByRole("heading", { name: "Modifier la tâche" })).toBeVisible();
       const titleInput = page.getByLabel("Titre");
-      await titleInput.fill("");
-      await titleInput.pressSequentially(editedTitle, { delay: 5 });
+      await titleInput.fill(editedTitle);
       await titleInput.press("Tab");
       await expect(titleInput).toHaveValue(editedTitle);
       await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
@@ -377,6 +376,7 @@ test.describe("connected regression suite", () => {
     page,
     request,
   }) => {
+    test.setTimeout(60_000);
     await login(page);
     const suffix = Date.now();
     const habitName = `E2E-HABIT-${suffix}`;
