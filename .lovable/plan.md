@@ -1,4 +1,9 @@
-# Audit complet (lecture seule) — état de préparation à la production
+# Audit historique (conservé pour traçabilité)
+
+> Ce document décrit l'état initial de juin 2026 et ne représente plus l'application actuelle.
+> La récurrence, les notifications, la récupération de mot de passe, l'export, la suppression de
+> compte et les tests ont depuis été implémentés. Utiliser `docs/development-status.md`,
+> `docs/production-checklist.md` et les workflows GitHub comme sources de vérité actuelles.
 
 Note préalable : le nom dans le code est **Smart Daily Tasks** (`public/manifest.webmanifest`, `src/routes/__root.tsx`), pas « Flow Day Planner ». À trancher avant publication.
 

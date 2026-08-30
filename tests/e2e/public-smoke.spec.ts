@@ -57,3 +57,11 @@ test("root service worker registers and contains the background push reminder pa
   expect(source).toContain("requireInteraction");
   expect(source).toContain("vibrate");
 });
+
+test("production-facing responses include baseline security headers", async ({ request }) => {
+  const response = await request.get("/auth");
+  expect(response.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(response.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(response.headers()["x-frame-options"]).toBe("DENY");
+  expect(response.headers()["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+});

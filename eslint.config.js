@@ -50,6 +50,13 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
+  {
+    files: ["src/components/ui/**/*.{ts,tsx}"],
+    rules: {
+      // Shared shadcn primitives intentionally colocate variants/helpers with components.
+      "react-refresh/only-export-components": "off",
+    },
+  },
   eslintPluginPrettier,
   {
     files: ["src/integrations/supabase/types.ts"],

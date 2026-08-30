@@ -8,13 +8,23 @@ const InputSchema = z.object({
   mode: z.enum(["parse_tasks", "plan_day", "summary"]).default("parse_tasks"),
 });
 
-type ParsedTask = {
-  title: string;
-  description?: string;
-  priority?: "low" | "normal" | "high" | "urgent";
-  due_date?: string | null;
-  due_time?: string | null;
-};
+const ParsedTaskSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(2000).optional().nullable(),
+  priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+  due_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
+  due_time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional()
+    .nullable(),
+});
+
+type ParsedTask = z.infer<typeof ParsedTaskSchema>;
 
 // The Lovable runtime is the only host that holds LOVABLE_API_KEY.
 // This server fn (which also runs on Vercel) proxies to it server-to-server,
@@ -23,7 +33,7 @@ const AI_PROXY_URL = "https://tache-daily.lovable.app/api/public/ai-assistant";
 
 export const askAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => InputSchema.parse(input))
+  .validator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
     const authHeader = getRequestHeader("authorization");
     if (!authHeader) throw new Error("Session expirée. Reconnectez-vous.");
@@ -55,9 +65,9 @@ export const askAssistant = createServerFn({ method: "POST" })
     }
 
     if (data.mode === "parse_tasks") {
-      const tasks = Array.isArray(payload?.["tasks"]) ? (payload["tasks"] as ParsedTask[]) : [];
+      const tasks = z.array(ParsedTaskSchema).max(25).safeParse(payload?.["tasks"]);
       const raw = typeof payload?.["raw"] === "string" ? (payload["raw"] as string) : "";
-      return { mode: "parse_tasks" as const, tasks, raw };
+      return { mode: "parse_tasks" as const, tasks: tasks.success ? tasks.data : [], raw };
     }
 
     const message = typeof payload?.["message"] === "string" ? (payload["message"] as string) : "";
@@ -66,20 +76,12 @@ export const askAssistant = createServerFn({ method: "POST" })
   });
 
 const CreateBatchSchema = z.object({
-  tasks: z.array(
-    z.object({
-      title: z.string().min(1).max(200),
-      description: z.string().optional().nullable(),
-      priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
-      due_date: z.string().nullable().optional(),
-      due_time: z.string().nullable().optional(),
-    }),
-  ),
+  tasks: z.array(ParsedTaskSchema).min(1).max(25),
 });
 
 export const createTasksBatch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => CreateBatchSchema.parse(input))
+  .validator((input: unknown) => CreateBatchSchema.parse(input))
   .handler(async ({ data, context }) => {
     const rows = data.tasks.map((t) => ({
       user_id: context.userId,

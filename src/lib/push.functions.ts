@@ -11,7 +11,7 @@ const SubSchema = z.object({
 
 export const savePushSubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => SubSchema.parse(data))
+  .validator((data: unknown) => SubSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase.from("push_subscriptions").upsert(
@@ -30,7 +30,7 @@ export const savePushSubscription = createServerFn({ method: "POST" })
 
 export const deletePushSubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ endpoint: z.string().url() }).parse(data))
+  .validator((data: unknown) => z.object({ endpoint: z.string().url() }).parse(data))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { error } = await supabase
@@ -43,7 +43,7 @@ export const deletePushSubscription = createServerFn({ method: "POST" })
 
 export const saveUserTimezone = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ timezone: z.string().min(1).max(64) }).parse(data))
+  .validator((data: unknown) => z.object({ timezone: z.string().min(1).max(64) }).parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase

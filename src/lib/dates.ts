@@ -59,3 +59,14 @@ export function smartDateLabel(dateStr: string | null | undefined) {
 export function todayISO() {
   return format(new Date(), "yyyy-MM-dd");
 }
+
+export function isoDateInTimeZone(date: Date = new Date(), timeZone = "UTC") {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}

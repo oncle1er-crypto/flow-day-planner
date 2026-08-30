@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Subtask } from "@/lib/task-utils";
 import { toast } from "sonner";
+import { enqueueOp, isOnline } from "@/lib/sync-queue";
 
 export function useSubtasks(taskId?: string) {
   return useQuery<Subtask[]>({
@@ -42,14 +43,34 @@ export function useCreateSubtask() {
     mutationFn: async ({ taskId, title }: { taskId: string; title: string }) => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Non authentifié");
-      const { error } = await supabase.from("subtasks").insert({
+      const row = {
         task_id: taskId,
         user_id: u.user.id,
-        title,
-      });
+        title: title.trim(),
+      };
+      if (!row.title) throw new Error("Le titre est obligatoire.");
+      if (!isOnline()) {
+        const optimistic = {
+          ...row,
+          id: crypto.randomUUID(),
+          is_done: false,
+          position: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as Subtask;
+        await enqueueOp({ table: "subtasks", action: "insert", payload: optimistic });
+        return optimistic;
+      }
+      const { data, error } = await supabase.from("subtasks").insert(row).select().single();
       if (error) throw error;
+      return data;
     },
-    onSuccess: (_d, v) => {
+    onSuccess: (created, v) => {
+      if (!isOnline()) {
+        qc.setQueryData<Subtask[]>(["subtasks", v.taskId], (old) =>
+          old ? [...old, created] : [created],
+        );
+      }
       qc.invalidateQueries({ queryKey: ["subtasks", v.taskId] });
       qc.invalidateQueries({ queryKey: ["subtasks-by-tasks"] });
     },
@@ -61,10 +82,26 @@ export function useToggleSubtask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; taskId: string; completed: boolean }) => {
+      if (!isOnline()) {
+        await enqueueOp({
+          table: "subtasks",
+          action: "update",
+          payload: { is_done: completed },
+          match: { id },
+        });
+        return;
+      }
       const { error } = await supabase.from("subtasks").update({ is_done: completed }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, v) => {
+      if (!isOnline()) {
+        qc.setQueryData<Subtask[]>(["subtasks", v.taskId], (old) =>
+          old?.map((subtask) =>
+            subtask.id === v.id ? { ...subtask, is_done: v.completed } : subtask,
+          ),
+        );
+      }
       qc.invalidateQueries({ queryKey: ["subtasks", v.taskId] });
       qc.invalidateQueries({ queryKey: ["subtasks-by-tasks"] });
     },
@@ -75,10 +112,19 @@ export function useDeleteSubtask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string; taskId: string }) => {
+      if (!isOnline()) {
+        await enqueueOp({ table: "subtasks", action: "delete", match: { id } });
+        return;
+      }
       const { error } = await supabase.from("subtasks").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, v) => {
+      if (!isOnline()) {
+        qc.setQueryData<Subtask[]>(["subtasks", v.taskId], (old) =>
+          old?.filter((subtask) => subtask.id !== v.id),
+        );
+      }
       qc.invalidateQueries({ queryKey: ["subtasks", v.taskId] });
       qc.invalidateQueries({ queryKey: ["subtasks-by-tasks"] });
     },

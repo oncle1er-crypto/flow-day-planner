@@ -200,6 +200,18 @@ Deno.serve(async (req) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
+  const requiredEnvironment = [
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "VAPID_PUBLIC_KEY",
+    "VAPID_PRIVATE_KEY",
+  ];
+  const missingEnvironment = requiredEnvironment.filter((name) => !Deno.env.get(name));
+  if (missingEnvironment.length > 0) {
+    console.error("push-reminders missing environment", missingEnvironment.join(","));
+    return json({ error: "Service unavailable" }, 503);
+  }
+
   const sb = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -349,7 +361,7 @@ Deno.serve(async (req) => {
         });
         if (r.ok) sent++;
         if (r.expired) expired.push(sub.id);
-        else if (!r.ok) console.warn("push failed", r.status, sub.endpoint);
+        else if (!r.ok) console.warn("push failed", r.status, sub.id);
       } catch (e) {
         console.error("sendWebPush", e);
       }

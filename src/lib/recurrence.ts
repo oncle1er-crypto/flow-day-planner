@@ -1,13 +1,7 @@
 import type { Task, TaskInsert } from "@/lib/task-utils";
 
 export type RecurrenceType =
-  | "none"
-  | "daily"
-  | "weekdays"
-  | "weekly"
-  | "monthly"
-  | "yearly"
-  | "custom";
+  "none" | "daily" | "weekdays" | "weekly" | "monthly" | "yearly" | "custom";
 
 export type RecurrenceConfig = {
   /** Repeat every N periods (daily/weekly/monthly/yearly). Defaults to 1. */

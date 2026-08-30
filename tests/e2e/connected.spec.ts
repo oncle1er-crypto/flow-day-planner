@@ -254,8 +254,7 @@ test.describe("connected regression suite", () => {
       await card.getByText(title, { exact: true }).click();
       await expect(page.getByRole("heading", { name: "Modifier la tâche" })).toBeVisible();
       const titleInput = page.getByLabel("Titre");
-      await titleInput.fill("");
-      await titleInput.pressSequentially(editedTitle, { delay: 5 });
+      await titleInput.fill(editedTitle);
       await titleInput.press("Tab");
       await expect(titleInput).toHaveValue(editedTitle);
       await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
@@ -371,5 +370,69 @@ test.describe("connected regression suite", () => {
     await expect(page.getByText("Appeler le dentiste", { exact: true }).first()).toBeVisible();
 
     expect(serverFailures, `Unexpected 5xx responses: ${serverFailures.join(", ")}`).toEqual([]);
+  });
+
+  test("habits, goals, categories, focus and data export complete their real UI lifecycles", async ({
+    page,
+    request,
+  }) => {
+    test.setTimeout(60_000);
+    await login(page);
+    const suffix = Date.now();
+    const habitName = `E2E-HABIT-${suffix}`;
+    const goalTitle = `E2E-GOAL-${suffix}`;
+    const categoryName = `E2E-CATEGORY-${suffix}`;
+
+    await page.goto("/habits");
+    await page.getByRole("button", { name: "Nouvelle", exact: true }).click();
+    await page.getByRole("dialog").getByLabel("Nom").fill(habitName);
+    await page.getByRole("dialog").getByRole("button", { name: "Créer", exact: true }).click();
+    const habit = page.locator("article").filter({ hasText: habitName });
+    await expect(habit).toBeVisible();
+    await habit.getByRole("button", { name: "Valider aujourd'hui" }).click();
+    await expect(habit.getByRole("button", { name: "Annuler aujourd'hui" })).toBeVisible();
+    await habit.getByText(habitName, { exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Supprimer" }).click();
+    await expect(habit).toBeHidden();
+
+    await page.goto("/goals");
+    await page.getByRole("button", { name: "Nouvel", exact: true }).click();
+    await page.getByRole("dialog").getByLabel("Titre").fill(goalTitle);
+    await page.getByRole("dialog").getByRole("button", { name: "Créer", exact: true }).click();
+    const goal = page.locator("article").filter({ hasText: goalTitle });
+    await expect(goal).toBeVisible();
+    await goal.getByRole("button", { name: "Marquer atteint" }).click();
+    await expect(goal).toContainText("100%");
+    await goal.getByText(goalTitle, { exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Supprimer" }).click();
+    await expect(goal).toBeHidden();
+
+    await page.goto("/settings");
+    await page.getByPlaceholder("Nouvelle catégorie").fill(categoryName);
+    await page.getByRole("button", { name: "Ajouter la catégorie" }).click();
+    const categoryInput = page.getByLabel(`Nom de la catégorie ${categoryName}`);
+    await expect(categoryInput).toBeVisible();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: `Supprimer la catégorie ${categoryName}` }).click();
+    await expect(categoryInput).toBeHidden();
+
+    const accessToken = await getSupabaseAccessToken(page);
+    const userId = await getSupabaseUserId(request, accessToken);
+    const financePin = deriveFinancePin(userId);
+    await ensureFinancePin(page, financePin);
+    await unlockFinance(page, financePin);
+    await page.goto("/settings");
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Exporter mes données" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^flow-day-planner-export-.*\.json$/);
+
+    await page.goto("/focus");
+    await page.locator('input[type="number"]').first().fill("1");
+    await page.getByRole("button", { name: "Démarrer" }).click();
+    await page.waitForTimeout(5_500);
+    await page.getByRole("button", { name: "Stop" }).click();
+    await expect(page.getByText("Historique récent")).toBeVisible();
   });
 });

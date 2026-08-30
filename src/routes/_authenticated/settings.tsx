@@ -13,16 +13,27 @@ import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useBackgroundPush } from "@/hooks/use-background-push";
 import { useNativeReminders } from "@/hooks/use-native-reminders";
 import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { exportCurrentUserData } from "@/lib/export-user-data";
+import { parseFlowDayImport, restoreCurrentUserData } from "@/lib/import-user-data";
+import {
+  useCategories,
+  useCreateCategory,
+  useDeleteCategory,
+  useUpdateCategory,
+} from "@/hooks/use-categories";
 import {
   AlarmClock,
   Bell,
   BellOff,
   Check,
   Download,
+  FolderPlus,
   Loader2,
   Radio,
   Smartphone,
+  Trash2,
+  Upload,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({ component: SettingsPage });
@@ -34,6 +45,7 @@ function SettingsPage() {
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const { permission, isSupported, isGranted, requestPermission } = usePushNotifications();
   const bg = useBackgroundPush();
   const native = useNativeReminders();
@@ -103,6 +115,47 @@ function SettingsPage() {
     }
   };
 
+  const importData = async (file: File) => {
+    setImporting(true);
+    try {
+      const payload = parseFlowDayImport(await file.text());
+      if (
+        !window.confirm(
+          "Restaurer cet export dans votre compte ? Les éléments ayant le même identifiant seront mis à jour.",
+        )
+      ) {
+        return;
+      }
+      const restored = await restoreCurrentUserData(payload);
+      await qc.invalidateQueries();
+      const total = Object.values(restored).reduce((sum, count) => sum + count, 0);
+      toast.success(`${total} élément${total > 1 ? "s" : ""} restauré${total > 1 ? "s" : ""}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible de restaurer les données.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const deleteAccount = async () => {
+    const confirmation = window.prompt(
+      "Cette action supprime définitivement votre compte et toutes ses données. Tapez SUPPRIMER pour confirmer.",
+    );
+    if (confirmation !== "SUPPRIMER") return;
+    setSaving(true);
+    try {
+      const database = supabase as unknown as SupabaseClient;
+      const { error } = await database.rpc("delete_my_account");
+      if (error) throw error;
+      qc.clear();
+      await supabase.auth.signOut({ scope: "local" });
+      window.location.assign("/auth");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible de supprimer le compte.");
+      setSaving(false);
+    }
+  };
+
   return (
     <AppShell title="Paramètres" subtitle="Personnalisation">
       <div className="pt-4 space-y-6">
@@ -125,6 +178,8 @@ function SettingsPage() {
             Enregistrer
           </Button>
         </section>
+
+        <CategoryManager />
 
         <section className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
           <h2 className="font-display font-semibold">Notifications</h2>
@@ -333,9 +388,137 @@ function SettingsPage() {
             )}
             Exporter mes données
           </Button>
+          <Label
+            htmlFor="data-import"
+            className="inline-flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+          >
+            {importing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            Restaurer un export
+          </Label>
+          <Input
+            id="data-import"
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            disabled={importing}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void importData(file);
+              event.target.value = "";
+            }}
+          />
+        </section>
+
+        <section className="rounded-2xl border border-destructive/40 bg-destructive/5 p-5 space-y-3">
+          <div>
+            <h2 className="font-display font-semibold text-destructive">Zone de danger</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              La suppression du compte efface définitivement le profil et toutes les données liées.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={saving}
+            onClick={deleteAccount}
+          >
+            <Trash2 className="h-4 w-4 mr-2" /> Supprimer définitivement mon compte
+          </Button>
         </section>
       </div>
     </AppShell>
+  );
+}
+
+function CategoryManager() {
+  const { data: categories = [] } = useCategories();
+  const create = useCreateCategory();
+  const update = useUpdateCategory();
+  const remove = useDeleteCategory();
+  const [name, setName] = useState("");
+  const [color, setColor] = useState("#6366F1");
+
+  return (
+    <section className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
+      <div>
+        <h2 className="font-display font-semibold">Catégories</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Organisez vos tâches avec des catégories personnalisées. La suppression conserve les
+          tâches et retire seulement leur classement.
+        </p>
+      </div>
+      <div className="space-y-2">
+        {categories.map((category) => (
+          <div key={category.id} className="flex items-center gap-2">
+            <Input
+              type="color"
+              aria-label={`Couleur de ${category.name}`}
+              defaultValue={category.color}
+              className="h-10 w-12 p-1"
+              onBlur={(event) =>
+                update.mutate({ id: category.id, name: category.name, color: event.target.value })
+              }
+            />
+            <Input
+              aria-label={`Nom de la catégorie ${category.name}`}
+              defaultValue={category.name}
+              onBlur={(event) => {
+                const next = event.target.value.trim();
+                if (next && next !== category.name) {
+                  update.mutate({ id: category.id, name: next, color: category.color });
+                }
+              }}
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              aria-label={`Supprimer la catégorie ${category.name}`}
+              disabled={remove.isPending}
+              onClick={() => {
+                if (window.confirm(`Supprimer la catégorie « ${category.name} » ?`)) {
+                  remove.mutate(category.id);
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 border-t border-border pt-4">
+        <Input
+          type="color"
+          aria-label="Couleur de la nouvelle catégorie"
+          value={color}
+          onChange={(event) => setColor(event.target.value)}
+          className="h-10 w-12 p-1"
+        />
+        <Input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Nouvelle catégorie"
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && name.trim()) {
+              create.mutate({ name, color }, { onSuccess: () => setName("") });
+            }
+          }}
+        />
+        <Button
+          type="button"
+          size="icon"
+          aria-label="Ajouter la catégorie"
+          disabled={!name.trim() || create.isPending}
+          onClick={() => create.mutate({ name, color }, { onSuccess: () => setName("") })}
+        >
+          <FolderPlus className="h-4 w-4" />
+        </Button>
+      </div>
+    </section>
   );
 }
 

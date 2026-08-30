@@ -4,6 +4,7 @@ import type { Task, TaskInsert, TaskUpdate, Status } from "@/lib/task-utils";
 import { toast } from "sonner";
 import { enqueueOp, isOnline } from "@/lib/sync-queue";
 import { generateNextOccurrence } from "@/lib/recurrence.functions";
+import { todayISO } from "@/lib/dates";
 
 export function useTasks(filter?: {
   dueOn?: string;
@@ -25,10 +26,7 @@ export function useTasks(filter?: {
       if (filter?.range) q = q.gte("due_date", filter.range[0]).lte("due_date", filter.range[1]);
       if (filter?.status) q = q.in("status", filter.status);
       if (filter?.overdue)
-        q = q
-          .lt("due_date", new Date().toISOString().slice(0, 10))
-          .neq("status", "done")
-          .neq("status", "cancelled");
+        q = q.lt("due_date", todayISO()).neq("status", "done").neq("status", "cancelled");
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
@@ -58,7 +56,12 @@ export function useCreateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (created) => {
+      if (!isOnline()) {
+        qc.setQueriesData<Task[]>({ queryKey: ["tasks"] }, (old) =>
+          old && !old.some((task) => task.id === created.id) ? [created, ...old] : old,
+        );
+      }
       qc.invalidateQueries({ queryKey: ["tasks"] });
       toast.success(isOnline() ? "Tâche créée" : "Tâche créée (hors-ligne)");
     },
@@ -88,7 +91,14 @@ export function useUpdateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tasks"] }),
+    onSuccess: (updated) => {
+      if (!isOnline()) {
+        qc.setQueriesData<Task[]>({ queryKey: ["tasks"] }, (old) =>
+          old?.map((task) => (task.id === updated.id ? { ...task, ...updated } : task)),
+        );
+      }
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 }
@@ -138,7 +148,12 @@ export function useDeleteTask() {
       const { error } = await supabase.from("tasks").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      if (!isOnline()) {
+        qc.setQueriesData<Task[]>({ queryKey: ["tasks"] }, (old) =>
+          old?.filter((task) => task.id !== id),
+        );
+      }
       qc.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Tâche supprimée");
     },

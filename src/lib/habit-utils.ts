@@ -1,4 +1,5 @@
 import type { Database } from "@/integrations/supabase/types";
+import { format } from "date-fns";
 
 export type Habit = Database["public"]["Tables"]["habits"]["Row"];
 export type HabitInsert = Database["public"]["Tables"]["habits"]["Insert"];
@@ -15,7 +16,7 @@ export function computeStreak(habit: Pick<Habit, "days_of_week">, logs: HabitLog
   const cur = new Date();
   cur.setHours(0, 0, 0, 0);
   // If today is due and not done, start from yesterday so the user doesn't lose streak before EOD
-  const todayKey = cur.toISOString().slice(0, 10);
+  const todayKey = format(cur, "yyyy-MM-dd");
   if (isHabitDueOn(habit, cur) && !set.has(todayKey)) {
     cur.setDate(cur.getDate() - 1);
   }
@@ -24,7 +25,7 @@ export function computeStreak(habit: Pick<Habit, "days_of_week">, logs: HabitLog
       cur.setDate(cur.getDate() - 1);
       continue;
     }
-    const key = cur.toISOString().slice(0, 10);
+    const key = format(cur, "yyyy-MM-dd");
     if (set.has(key)) {
       streak++;
       cur.setDate(cur.getDate() - 1);
@@ -42,7 +43,7 @@ export function last7Days(): string[] {
   for (let i = 6; i >= 0; i--) {
     const x = new Date(d);
     x.setDate(d.getDate() - i);
-    out.push(x.toISOString().slice(0, 10));
+    out.push(format(x, "yyyy-MM-dd"));
   }
   return out;
 }

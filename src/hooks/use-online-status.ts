@@ -23,15 +23,25 @@ export function useOnlineStatus(): boolean {
 
 export function usePendingSyncCount(): number {
   return useSyncExternalStore(
-    (cb) => subscribeQueue(cb),
+    subscribePendingCount,
     () => _cachedCount,
     () => 0,
   );
 }
 
 let _cachedCount = 0;
+const pendingCountListeners = new Set<() => void>();
+
+function subscribePendingCount(callback: () => void) {
+  pendingCountListeners.add(callback);
+  return () => pendingCountListeners.delete(callback);
+}
+
 async function refreshCount() {
-  _cachedCount = await queueSize();
+  const next = await queueSize();
+  if (next === _cachedCount) return;
+  _cachedCount = next;
+  pendingCountListeners.forEach((listener) => listener());
 }
 
 /** Mount once: refresh count, listen for online events, auto-flush. */
@@ -40,9 +50,9 @@ export function useOfflineSync() {
   const online = useOnlineStatus();
 
   useEffect(() => {
-    refreshCount();
+    void refreshCount();
     const unsub = subscribeQueue(() => {
-      refreshCount();
+      void refreshCount();
     });
     return unsub;
   }, []);
@@ -64,8 +74,23 @@ export function useOfflineSync() {
         qc.invalidateQueries();
       }
       if (failed > 0) {
-        toast.error("Synchronisation interrompue, nous réessaierons");
+        toast.error(
+          `${failed} modification${failed > 1 ? "s" : ""} n'a pas pu être synchronisée. Une nouvelle tentative sera effectuée.`,
+        );
       }
     })();
+  }, [online, qc]);
+
+  useEffect(() => {
+    if (!online) return;
+    const timer = window.setInterval(() => {
+      void (async () => {
+        if ((await queueSize()) === 0) return;
+        const { applied } = await flushQueue();
+        await refreshCount();
+        if (applied > 0) qc.invalidateQueries();
+      })();
+    }, 60_000);
+    return () => window.clearInterval(timer);
   }, [online, qc]);
 }

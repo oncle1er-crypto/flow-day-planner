@@ -26,5 +26,31 @@ export default defineConfig({
   // are never written to the shared browser Cache Storage.
   vite: {
     plugins: [mcpPlugin()],
+    build: {
+      rolldownOptions: {
+        output: {
+          strictExecutionOrder: true,
+          codeSplitting: {
+            groups: [
+              {
+                name: "supabase-vendor",
+                test: /node_modules[\\/]@supabase[\\/]/,
+                priority: 20,
+              },
+              {
+                name: "tanstack-vendor",
+                test: /node_modules[\\/]@tanstack[\\/]/,
+                priority: 15,
+              },
+              {
+                name: "react-vendor",
+                test: /node_modules[\\/](react|react-dom)[\\/]/,
+                priority: 10,
+              },
+            ],
+          },
+        },
+      },
+    },
   },
 });

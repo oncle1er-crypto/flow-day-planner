@@ -19,6 +19,7 @@ import {
 } from "@/hooks/use-focus-sessions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { todayISO } from "@/lib/dates";
 
 export const Route = createFileRoute("/_authenticated/focus")({ component: FocusPage });
 
@@ -124,7 +125,7 @@ function FocusPage() {
   const Icon = PRESETS[kind].icon;
 
   const todayStats = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISO();
     const todays = sessions.filter(
       (s) => s.started_at.slice(0, 10) === today && s.kind === "focus",
     );
