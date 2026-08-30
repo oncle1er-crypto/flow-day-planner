@@ -1,6 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { supabaseForUser } from "../supabase";
+import { isoDateInTimeZone } from "../../dates";
 
 export default defineTool({
   name: "daily_summary",
@@ -12,15 +13,16 @@ export default defineTool({
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .optional()
-      .describe("Date du bilan (YYYY-MM-DD). Par défaut aujourd'hui (UTC)."),
+      .describe("Date du bilan (YYYY-MM-DD). Par défaut aujourd'hui dans le fuseau du profil."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ date }, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Non authentifié." }], isError: true };
     }
-    const day = date ?? new Date().toISOString().slice(0, 10);
     const supabase = supabaseForUser(ctx);
+    const { data: profile } = await supabase.from("profiles").select("timezone").maybeSingle();
+    const day = date ?? isoDateInTimeZone(new Date(), profile?.timezone || "UTC");
     const { data, error } = await supabase
       .from("tasks")
       .select("id,title,status,priority,due_date")

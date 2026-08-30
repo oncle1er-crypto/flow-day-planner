@@ -1,3 +1,7 @@
 # Testing strategy
 
-Unit tests cover recurrence and notification deduplication. GitHub Actions runs the unit suite and production build for every `chatgpt/**` push and pull request to `main`. Browser E2E tests will be added in the next quality wave.
+Unit tests cover recurrence, reminder planning and deduplication, finance calculations and security,
+task date logic, and import validation. GitHub Actions runs dependency auditing, typechecking,
+linting, unit tests, production builds, connected browser E2E tests, Android builds, and iOS
+simulator builds for pull requests. A second workflow validates the deployed `main` commit against
+production after every merge.

@@ -41,12 +41,28 @@ export function useCreateHabit() {
     mutationFn: async (input: Omit<HabitInsert, "user_id">) => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Non authentifié");
-      const { error } = await supabase.from("habits").insert({ ...input, user_id: u.user.id });
+      const row = { ...input, user_id: u.user.id };
+      if (!isOnline()) {
+        const now = new Date().toISOString();
+        const optimistic = {
+          ...row,
+          id: crypto.randomUUID(),
+          created_at: now,
+          updated_at: now,
+        } as Habit;
+        await enqueueOp({ table: "habits", action: "insert", payload: optimistic });
+        return optimistic;
+      }
+      const { data, error } = await supabase.from("habits").insert(row).select().single();
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (created) => {
+      if (!isOnline()) {
+        qc.setQueryData<Habit[]>(["habits"], (old) => (old ? [...old, created] : [created]));
+      }
       qc.invalidateQueries({ queryKey: ["habits"] });
-      toast.success("Habitude créée");
+      toast.success(isOnline() ? "Habitude créée" : "Habitude créée (hors-ligne)");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -56,10 +72,22 @@ export function useUpdateHabit() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Habit> }) => {
+      if (!isOnline()) {
+        await enqueueOp({ table: "habits", action: "update", payload: patch, match: { id } });
+        return { id, ...patch } as Habit;
+      }
       const { error } = await supabase.from("habits").update(patch).eq("id", id);
       if (error) throw error;
+      return { id, ...patch } as Habit;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["habits"] }),
+    onSuccess: (updated) => {
+      if (!isOnline()) {
+        qc.setQueryData<Habit[]>(["habits"], (old) =>
+          old?.map((habit) => (habit.id === updated.id ? { ...habit, ...updated } : habit)),
+        );
+      }
+      qc.invalidateQueries({ queryKey: ["habits"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 }
@@ -68,10 +96,17 @@ export function useDeleteHabit() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      if (!isOnline()) {
+        await enqueueOp({ table: "habits", action: "delete", match: { id } });
+        return;
+      }
       const { error } = await supabase.from("habits").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      if (!isOnline()) {
+        qc.setQueryData<Habit[]>(["habits"], (old) => old?.filter((habit) => habit.id !== id));
+      }
       qc.invalidateQueries({ queryKey: ["habits"] });
       qc.invalidateQueries({ queryKey: ["habit_logs"] });
       toast.success("Habitude supprimée");

@@ -90,12 +90,7 @@ function Row({
   label,
 }: {
   to:
-    | "/tasks"
-    | "/notifications"
-    | "/settings"
-    | "/achievements"
-    | "/finance"
-    | "/finance-security";
+    "/tasks" | "/notifications" | "/settings" | "/achievements" | "/finance" | "/finance-security";
   icon: typeof Settings;
   label: string;
 }) {

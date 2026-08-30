@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ensureRecurringOccurrences } from "@/lib/recurrence.functions";
 import { isOnline } from "@/lib/sync-queue";
+import { todayISO } from "@/lib/dates";
 
 const RUN_KEY = "sdt:recurrence-catchup";
 
@@ -18,7 +19,7 @@ export function useRecurrenceCatchup() {
     ran.current = true;
     if (!isOnline()) return;
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISO();
     try {
       if (localStorage.getItem(RUN_KEY) === today) return;
     } catch {

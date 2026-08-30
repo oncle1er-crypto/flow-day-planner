@@ -2,12 +2,31 @@
   "name": "Flow Day Planner",
   "short_name": "Flow Day",
   "description": "Organisez vos journées, tâches, habitudes et objectifs avec intelligence",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
+  "lang": "fr",
+  "categories": ["productivity", "utilities"],
   "background_color": "#15171f",
   "theme_color": "#6366F1",
   "icons": [
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icon-512.png", "sizes": "192x192", "type": "image/png" }
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Aujourd'hui",
+      "short_name": "Aujourd'hui",
+      "url": "/today",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Toutes les tâches",
+      "short_name": "Tâches",
+      "url": "/tasks",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
   ]
 }

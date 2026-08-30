@@ -1,28 +1,13 @@
 import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { ACHIEVEMENTS, computeXP, levelFromXP, type Stats } from "@/lib/gamification";
 import { syncAchievements } from "@/lib/achievements.functions";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
-function computeMaxStreak(dates: string[]): number {
-  if (!dates.length) return 0;
-  const set = new Set(dates);
-  let max = 0;
-  for (const d of set) {
-    // count consecutive previous days ending at d
-    let cur = 1;
-    const base = new Date(d + "T00:00:00");
-    while (true) {
-      base.setDate(base.getDate() - 1);
-      const iso = base.toISOString().slice(0, 10);
-      if (set.has(iso)) cur++;
-      else break;
-    }
-    if (cur > max) max = cur;
-  }
-  return max;
-}
+const database = supabase as unknown as SupabaseClient;
 
 export function useGamification() {
   const qc = useQueryClient();
@@ -30,25 +15,54 @@ export function useGamification() {
   const statsQuery = useQuery({
     queryKey: ["gamification", "stats"],
     queryFn: async (): Promise<Stats> => {
-      const [tasksRes, focusRes, habitLogsRes, goalsRes] = await Promise.all([
-        supabase.from("tasks").select("id", { count: "exact", head: true }).eq("status", "done"),
-        supabase
-          .from("focus_sessions")
-          .select("actual_seconds,kind,completed")
-          .eq("completed", true),
-        supabase.from("habit_logs").select("log_date"),
-        supabase.from("goals").select("id", { count: "exact", head: true }).eq("status", "done"),
-      ]);
-      const focusRows = (focusRes.data ?? []).filter((r) => r.kind === "focus");
-      const focusSeconds = focusRows.reduce((a, r) => a + (r.actual_seconds ?? 0), 0);
-      const habitDates = (habitLogsRes.data ?? []).map((r) => r.log_date as string);
+      const { data, error } = await database.rpc("get_my_gamification_stats");
+      if (error) {
+        // Backward-compatible fallback while a deployment is applying the new
+        // aggregate RPC migration. It can be removed after every environment
+        // reports the migration as installed.
+        const [tasksRes, focusRes, habitLogsRes, goalsRes] = await Promise.all([
+          supabase.from("tasks").select("id", { count: "exact", head: true }).eq("status", "done"),
+          supabase
+            .from("focus_sessions")
+            .select("actual_seconds,kind")
+            .eq("completed", true)
+            .eq("kind", "focus"),
+          supabase.from("habit_logs").select("log_date"),
+          supabase.from("goals").select("id", { count: "exact", head: true }).eq("status", "done"),
+        ]);
+        const distinctDates = [...new Set((habitLogsRes.data ?? []).map((item) => item.log_date))];
+        const dateSet = new Set(distinctDates);
+        let habitStreakMax = 0;
+        for (const value of distinctDates) {
+          const cursor = new Date(`${value}T12:00:00`);
+          let streak = 1;
+          while (true) {
+            cursor.setDate(cursor.getDate() - 1);
+            const key = format(cursor, "yyyy-MM-dd");
+            if (!dateSet.has(key)) break;
+            streak++;
+          }
+          habitStreakMax = Math.max(habitStreakMax, streak);
+        }
+        return {
+          tasksCompleted: tasksRes.count ?? 0,
+          focusSessions: focusRes.data?.length ?? 0,
+          focusMinutes: Math.floor(
+            (focusRes.data ?? []).reduce((sum, item) => sum + item.actual_seconds, 0) / 60,
+          ),
+          habitLogs: habitLogsRes.data?.length ?? 0,
+          habitStreakMax,
+          goalsCompleted: goalsRes.count ?? 0,
+        };
+      }
+      const row = Array.isArray(data) ? data[0] : data;
       return {
-        tasksCompleted: tasksRes.count ?? 0,
-        focusSessions: focusRows.length,
-        focusMinutes: Math.floor(focusSeconds / 60),
-        habitLogs: habitDates.length,
-        habitStreakMax: computeMaxStreak(habitDates),
-        goalsCompleted: goalsRes.count ?? 0,
+        tasksCompleted: Number(row?.tasks_completed ?? 0),
+        focusSessions: Number(row?.focus_sessions ?? 0),
+        focusMinutes: Number(row?.focus_minutes ?? 0),
+        habitLogs: Number(row?.habit_logs ?? 0),
+        habitStreakMax: Number(row?.habit_streak_max ?? 0),
+        goalsCompleted: Number(row?.goals_completed ?? 0),
       };
     },
   });

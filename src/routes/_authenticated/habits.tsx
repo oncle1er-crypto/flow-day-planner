@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { HabitFormDialog } from "@/components/app/HabitFormDialog";
 import { cn } from "@/lib/utils";
 import { todayISO } from "@/lib/dates";
+import { format } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/habits")({ component: HabitsPage });
 
@@ -17,7 +18,7 @@ function HabitsPage() {
   const since = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 60);
-    return d.toISOString().slice(0, 10);
+    return format(d, "yyyy-MM-dd");
   }, []);
   const { data: habits = [] } = useHabits();
   const { data: logs = [] } = useHabitLogs(since);

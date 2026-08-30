@@ -11,7 +11,20 @@ export interface SyncOp {
   match?: Record<string, unknown>;
   createdAt: number;
   tempId?: string;
+  attempts?: number;
+  lastAttemptAt?: number;
+  lastError?: string;
 }
+
+const ALLOWED_TABLES = new Set([
+  "tasks",
+  "subtasks",
+  "habits",
+  "habit_logs",
+  "goals",
+  "focus_sessions",
+  "categories",
+]);
 
 const listeners = new Set<() => void>();
 function notify() {
@@ -27,6 +40,9 @@ export function subscribeQueue(cb: () => void) {
 export async function enqueueOp(
   op: Omit<SyncOp, "id" | "createdAt"> & { id?: string },
 ): Promise<SyncOp> {
+  if (!ALLOWED_TABLES.has(op.table)) {
+    throw new Error(`La synchronisation hors ligne ne prend pas en charge la table ${op.table}.`);
+  }
   const full: SyncOp = {
     id: op.id ?? crypto.randomUUID(),
     createdAt: Date.now(),
@@ -60,6 +76,18 @@ export async function queueSize(): Promise<number> {
 async function removeOp(id: string) {
   const db = await getDB();
   await db.delete(SYNC_STORE, id);
+  notify();
+}
+
+async function recordFailure(op: SyncOp, error: unknown) {
+  const db = await getDB();
+  const message = error instanceof Error ? error.message : String(error);
+  await db.put(SYNC_STORE, {
+    ...op,
+    attempts: (op.attempts ?? 0) + 1,
+    lastAttemptAt: Date.now(),
+    lastError: message.slice(0, 500),
+  });
   notify();
 }
 
@@ -102,8 +130,10 @@ export async function flushQueue(): Promise<{ applied: number; failed: number }>
         applied++;
       } catch (e) {
         failed++;
+        await recordFailure(op, e);
         console.error("[sync-queue] op failed", op, e);
-        break;
+        // Preserve the failed operation for a later retry, but do not let it
+        // permanently block unrelated changes queued behind it.
       }
     }
   } finally {

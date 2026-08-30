@@ -6,6 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { isoDateInTimeZone } from "@/lib/dates";
 
 const MODEL = "google/gemini-3-flash-preview";
 
@@ -14,13 +15,21 @@ const InputSchema = z.object({
   mode: z.enum(["parse_tasks", "plan_day", "summary"]).default("parse_tasks"),
 });
 
-type ParsedTask = {
-  title: string;
-  description?: string;
-  priority?: "low" | "normal" | "high" | "urgent";
-  due_date?: string | null;
-  due_time?: string | null;
-};
+const ParsedTaskSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(2000).optional().nullable(),
+  priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+  due_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
+  due_time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional()
+    .nullable(),
+});
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -102,7 +111,12 @@ export const Route = createFileRoute("/api/public/ai-assistant")({
           tasks = data ?? [];
         }
 
-        const today = new Date().toISOString().slice(0, 10);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("timezone")
+          .eq("id", userData.user.id)
+          .maybeSingle();
+        const today = isoDateInTimeZone(new Date(), profile?.timezone || "UTC");
         const sys =
           mode === "parse_tasks"
             ? `Tu es un assistant qui extrait des tâches d'un texte en français. Renvoie STRICTEMENT un JSON {"tasks":[{"title":"...","description":"...","priority":"low|normal|high|urgent","due_date":"YYYY-MM-DD"|null,"due_time":"HH:MM"|null}]}. Date du jour: ${today}. Pas de markdown, pas d'explication, juste le JSON.`
@@ -161,7 +175,7 @@ export const Route = createFileRoute("/api/public/ai-assistant")({
 
         if (mode === "parse_tasks") {
           const match = content.match(/\{[\s\S]*\}/);
-          let parsed: { tasks?: ParsedTask[] } = {};
+          let parsed: unknown = {};
           if (match) {
             try {
               parsed = JSON.parse(match[0]);
@@ -169,7 +183,14 @@ export const Route = createFileRoute("/api/public/ai-assistant")({
               parsed = {};
             }
           }
-          return json({ mode: "parse_tasks", tasks: parsed.tasks ?? [], raw: content });
+          const validated = z
+            .object({ tasks: z.array(ParsedTaskSchema).max(25) })
+            .safeParse(parsed);
+          return json({
+            mode: "parse_tasks",
+            tasks: validated.success ? validated.data.tasks : [],
+            raw: content,
+          });
         }
 
         return json({ mode, message: content });

@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { buildNextOccurrence, type RecurringTaskSource } from "@/lib/recurrence";
+import { isoDateInTimeZone } from "@/lib/dates";
 
 const SELECT =
   "id,user_id,title,description,due_date,due_time,priority,category_id,tags,color,icon,notes,reminder_enabled,recurrence,recurrence_config,recurrence_end_date,recurrence_parent_id,occurrence_index";
@@ -49,7 +50,7 @@ async function createOccurrence(
 
 export const generateNextOccurrence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ taskId: z.string().uuid() }).parse(input))
+  .validator((input: unknown) => z.object({ taskId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: task, error } = await supabase
@@ -66,8 +67,13 @@ export const generateNextOccurrence = createServerFn({ method: "POST" })
 export const ensureRecurringOccurrences = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase } = context;
-    const today = new Date().toISOString().slice(0, 10);
+    const { supabase, userId } = context;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", userId)
+      .maybeSingle();
+    const today = isoDateInTimeZone(new Date(), profile?.timezone || "UTC");
     const { data: tasks, error } = await supabase
       .from("tasks")
       .select(SELECT)

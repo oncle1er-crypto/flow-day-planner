@@ -28,9 +28,12 @@ Depuis Lovable : menu **+** (en bas à gauche du chat) → **GitHub → Connect 
 
 - `SUPABASE_URL` = identique à `VITE_SUPABASE_URL`
 - `SUPABASE_PUBLISHABLE_KEY` = identique à `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` = à récupérer dans Lovable Cloud (Settings → API keys) — **secret, ne jamais préfixer `VITE_`**
 - `LOVABLE_API_KEY` = à récupérer dans Lovable Cloud (sera utilisée pour l'IA)
 - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` = utiles uniquement si tu réécris `push-reminders` sur Vercel. Sinon ignore.
+
+La clé `service_role` n'est pas nécessaire sur Vercel dans l'architecture actuelle. Elle reste
+strictement côté Supabase Edge Function/Vault et ne doit pas être copiée dans le frontend ou les
+server functions Vercel.
 
 ## 4. Mettre à jour Supabase Auth (Google OAuth)
 

@@ -1,4 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { hasFinancePin, isFinanceSessionUnlocked } from "./finance-security";
+
+const database = supabase as unknown as SupabaseClient;
 
 function assertNoError(error: { message: string } | null, label: string) {
   if (error) throw new Error(`${label}: ${error.message}`);
@@ -9,6 +13,11 @@ export async function exportCurrentUserData(): Promise<void> {
   if (authError) throw authError;
   if (!auth.user) throw new Error("Utilisateur non authentifié.");
   const userId = auth.user.id;
+  if ((await hasFinancePin()) && !isFinanceSessionUnlocked()) {
+    throw new Error(
+      "Déverrouillez d’abord le module Finances afin que l’export puisse inclure les données financières.",
+    );
+  }
 
   const [
     profile,
@@ -22,6 +31,8 @@ export async function exportCurrentUserData(): Promise<void> {
     focusSessions,
     achievements,
     notifications,
+    financialObligations,
+    financialPayments,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle(),
@@ -34,6 +45,8 @@ export async function exportCurrentUserData(): Promise<void> {
     supabase.from("focus_sessions").select("*").eq("user_id", userId).order("started_at"),
     supabase.from("user_achievements").select("*").eq("user_id", userId).order("unlocked_at"),
     supabase.from("notifications").select("*").eq("user_id", userId).order("created_at"),
+    database.from("financial_obligations").select("*").eq("user_id", userId).order("created_at"),
+    database.from("financial_payments").select("*").eq("user_id", userId).order("paid_at"),
   ]);
 
   assertNoError(profile.error, "Profil");
@@ -47,10 +60,12 @@ export async function exportCurrentUserData(): Promise<void> {
   assertNoError(focusSessions.error, "Sessions focus");
   assertNoError(achievements.error, "Récompenses");
   assertNoError(notifications.error, "Notifications");
+  assertNoError(financialObligations.error, "Opérations financières");
+  assertNoError(financialPayments.error, "Paiements financiers");
 
   const payload = {
     application: "Flow Day Planner",
-    schema_version: 1,
+    schema_version: 2,
     exported_at: new Date().toISOString(),
     account: {
       id: userId,
@@ -68,6 +83,8 @@ export async function exportCurrentUserData(): Promise<void> {
     focus_sessions: focusSessions.data ?? [],
     achievements: achievements.data ?? [],
     notifications: notifications.data ?? [],
+    financial_obligations: financialObligations.data ?? [],
+    financial_payments: financialPayments.data ?? [],
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
