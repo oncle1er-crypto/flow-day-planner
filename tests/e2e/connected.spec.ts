@@ -254,7 +254,9 @@ test.describe("connected regression suite", () => {
       await card.getByText(title, { exact: true }).click();
       await expect(page.getByRole("heading", { name: "Modifier la tâche" })).toBeVisible();
       const titleInput = page.getByLabel("Titre");
-      await titleInput.fill(editedTitle);
+      await titleInput.fill("");
+      await titleInput.pressSequentially(editedTitle, { delay: 5 });
+      await titleInput.press("Tab");
       await expect(titleInput).toHaveValue(editedTitle);
       await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
       await expect(page.getByRole("heading", { name: "Modifier la tâche" })).toBeHidden();
@@ -366,7 +368,7 @@ test.describe("connected regression suite", () => {
     await page.locator("textarea").first().fill("Demain 9h appeler le dentiste");
     await page.getByRole("button", { name: /Extraire/i }).click();
     await expect(page.getByText("Tâches proposées (1)")).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText("Appeler le dentiste", { exact: true })).toBeVisible();
+    await expect(page.getByText("Appeler le dentiste", { exact: true }).first()).toBeVisible();
 
     expect(serverFailures, `Unexpected 5xx responses: ${serverFailures.join(", ")}`).toEqual([]);
   });
