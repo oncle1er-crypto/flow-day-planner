@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 const email = process.env.E2E_EMAIL?.trim();
@@ -16,13 +17,11 @@ async function login(page: Page) {
   await expect(page.getByRole("heading", { name: "À faire", exact: true })).toBeVisible();
 }
 
-function deriveFinancePin(secret: string) {
-  let hash = 2166136261;
-  for (const char of secret) {
-    hash ^= char.charCodeAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-  return String((hash >>> 0) % 10_000).padStart(4, "0");
+function deriveFinancePin(userId: string) {
+  const prefix = createHash("md5").update(userId).digest("hex").slice(0, 8);
+  const unsigned = Number.parseInt(prefix, 16) >>> 0;
+  const signed = unsigned > 0x7fffffff ? unsigned - 0x1_0000_0000 : unsigned;
+  return String(Math.abs(signed) % 10_000).padStart(4, "0");
 }
 
 async function waitForFinanceGate(page: Page) {
@@ -104,6 +103,15 @@ function supabaseHeaders(accessToken: string) {
     apikey: supabaseKey!,
     Authorization: `Bearer ${accessToken}`,
   };
+}
+
+async function getSupabaseUserId(request: APIRequestContext, accessToken: string) {
+  const url = new URL("/auth/v1/user", supabaseUrl!);
+  const response = await request.get(url.toString(), { headers: supabaseHeaders(accessToken) });
+  expect(response.ok(), `User lookup failed with HTTP ${response.status()}`).toBeTruthy();
+  const body = (await response.json()) as { id?: string };
+  expect(body.id, "Authenticated Supabase user id should exist").toBeTruthy();
+  return body.id!;
 }
 
 type TaskApiRow = { id: string; title: string; status: string };
@@ -278,7 +286,8 @@ test.describe("connected regression suite", () => {
 
     await login(page);
     const accessToken = await getSupabaseAccessToken(page);
-    const financePin = deriveFinancePin(password!);
+    const userId = await getSupabaseUserId(request, accessToken);
+    const financePin = deriveFinancePin(userId);
     await ensureFinancePin(page, financePin);
     await unlockFinance(page, financePin);
 
