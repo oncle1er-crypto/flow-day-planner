@@ -68,7 +68,7 @@ function AssistantPage() {
   };
 
   return (
-    <AppShell title="Assistant" subtitle="IA productivité">
+    <AppShell title="Assistant IA" subtitle="Productivité">
       <div className="pt-4 space-y-5">
         <div className="rounded-3xl bg-gradient-card border border-border p-5 shadow-card">
           <div className="flex items-start gap-3 mb-4">
