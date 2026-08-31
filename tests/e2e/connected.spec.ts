@@ -190,6 +190,12 @@ test.describe("connected regression suite", () => {
   test("authenticated user can navigate core modules", async ({ page }) => {
     await login(page);
 
+    const assistantLink = page.getByRole("link", { name: "Assistant", exact: true });
+    await expect(assistantLink).toBeVisible();
+    await assistantLink.click();
+    await expect(page).toHaveURL(/\/assistant$/);
+    await expect(page.getByRole("heading", { name: "Assistant IA", exact: true })).toBeVisible();
+
     for (const path of [
       "/today",
       "/tasks",

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell, User, CloudOff } from "lucide-react";
+import { Bell, User, CloudOff, Sparkles } from "lucide-react";
 import { useUnreadCount } from "@/hooks/use-notifications";
 import { useOnlineStatus, usePendingSyncCount } from "@/hooks/use-online-status";
 
@@ -40,6 +40,14 @@ export function AppHeader({
               {pending > 0 ? pending : "Hors-ligne"}
             </div>
           )}
+          <Link
+            to="/assistant"
+            aria-label="Assistant IA"
+            title="Assistant IA"
+            className="h-10 w-10 rounded-full grid place-items-center bg-primary/10 text-primary hover:bg-primary/20 transition"
+          >
+            <Sparkles className="h-5 w-5" />
+          </Link>
           <Link
             to="/notifications"
             aria-label="Notifications"

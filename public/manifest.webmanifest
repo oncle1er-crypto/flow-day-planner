@@ -27,6 +27,12 @@
       "short_name": "Tâches",
       "url": "/tasks",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Assistant IA",
+      "short_name": "Assistant",
+      "url": "/assistant",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

@@ -14,6 +14,8 @@ import {
   Trophy,
   WalletCards,
   LockKeyhole,
+  Sparkles,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { lockFinanceSession } from "@/lib/finance-security";
@@ -66,6 +68,8 @@ function ProfilePage() {
           <Row to="/finance" icon={WalletCards} label="Dettes & créances" />
           <Row to="/finance-security" icon={LockKeyhole} label="Code secret Finances" />
           <Row to="/achievements" icon={Trophy} label="Récompenses & badges" />
+          <Row to="/assistant" icon={Sparkles} label="Assistant IA" />
+          <Row to="/history" icon={History} label="Bilan de productivité" />
           <Row to="/tasks" icon={ListChecks} label="Toutes les tâches" />
           <Row to="/notifications" icon={Bell} label="Notifications" />
           <Row to="/settings" icon={Settings} label="Paramètres" />
@@ -90,7 +94,14 @@ function Row({
   label,
 }: {
   to:
-    "/tasks" | "/notifications" | "/settings" | "/achievements" | "/finance" | "/finance-security";
+    | "/tasks"
+    | "/notifications"
+    | "/settings"
+    | "/achievements"
+    | "/finance"
+    | "/finance-security"
+    | "/assistant"
+    | "/history";
   icon: typeof Settings;
   label: string;
 }) {

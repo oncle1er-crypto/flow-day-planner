@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Home, ListChecks, Flame, Target, Timer, History } from "lucide-react";
+import { Home, ListChecks, Flame, Target, Timer, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -8,7 +8,7 @@ const items = [
   { to: "/focus", label: "Focus", icon: Timer },
   { to: "/habits", label: "Habitudes", icon: Flame },
   { to: "/goals", label: "Objectifs", icon: Target },
-  { to: "/history", label: "Bilan", icon: History },
+  { to: "/assistant", label: "Assistant", icon: Sparkles },
 ] as const;
 
 export function BottomNav() {
