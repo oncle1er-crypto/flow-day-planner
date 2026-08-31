@@ -91,7 +91,10 @@ export function TaskFormDialog({
       setRecEnd("");
       setRecMax("");
     }
-  }, [open, task, defaultDate]);
+    // The query can replace `task` with an equivalent object while the dialog is open.
+    // Reinitializing only for a new opening or task id preserves edits in progress.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, task?.id, defaultDate]);
 
   const toggleDay = (d: number) =>
     setRecDays((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort()));
