@@ -24,6 +24,7 @@ const ALLOWED_TABLES = new Set([
   "goals",
   "focus_sessions",
   "categories",
+  "notifications",
 ]);
 
 const listeners = new Set<() => void>();

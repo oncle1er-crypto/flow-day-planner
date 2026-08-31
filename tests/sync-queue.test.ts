@@ -46,4 +46,15 @@ describe("offline sync queue", () => {
       enqueueOp({ table: "profiles", action: "update", payload: { full_name: "Unsafe" } }),
     ).rejects.toThrow(/ne prend pas en charge/);
   });
+
+  it("accepts notification read-state updates for offline synchronization", async () => {
+    await expect(
+      enqueueOp({
+        table: "notifications",
+        action: "update",
+        payload: { is_read: true },
+        match: { id: "notification-id" },
+      }),
+    ).resolves.toMatchObject({ table: "notifications", action: "update" });
+  });
 });
